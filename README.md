@@ -23,8 +23,7 @@ Bug tracking app with role-based admin system, email notifications, and Supabase
 2. Update `backend/.env` with your keys
 3. `cd backend && pip install -r requirements.txt`
 4. `python app.py`
-5. Login: zeelpatel9262@gmail.com / Zeel7821
-6. Admin portal: http://localhost:5000/admin
+5. Admin portal: http://localhost:5000/admin
 
 ## Email Notifications
 
