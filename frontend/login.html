@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Swatter – Sign In</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/swatter.css">
+  <style>body { background: #0f0f1e; }</style>
+</head>
+<body class="h-full overflow-auto">
+  <div class="h-full w-full flex items-center justify-center p-6" style="background:#0f0f1e;">
+    <div class="w-full max-w-md">
+      <div class="flex flex-col items-center gap-3 mb-16 anim-fade-up">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background:#FFBE32;">
+          <svg viewBox="0 0 24 24" width="26" height="26" style="color:#0f0f1e;">
+            <rect x="10" y="14" width="4" height="8" fill="currentColor"/>
+            <circle cx="12" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="2"/>
+            <circle cx="16" cy="6" r="2.5" fill="currentColor" opacity="0.7"/>
+            <line x1="15" y1="5" x2="14" y2="3" stroke="currentColor" stroke-width="1.5" opacity="0.7"/>
+            <line x1="17" y1="5" x2="18" y2="3" stroke="currentColor" stroke-width="1.5" opacity="0.7"/>
+          </svg>
+        </div>
+        <span class="text-3xl font-bold" style="color:#FFBE32;">Swatter</span>
+      </div>
+      <div id="error-box" class="hidden mb-4 px-4 py-3 rounded-xl text-sm font-medium"
+        style="background:rgba(239,68,68,0.12);color:#ef4444;border:1px solid rgba(239,68,68,0.2);"></div>
+      <div class="anim-fade-up delay-1">
+        <label for="login-email" class="block text-sm font-medium mb-2" style="color:#c0c0d8;">Email</label>
+        <div class="relative mb-4">
+          <i data-lucide="mail" class="absolute left-3 top-1/2 -translate-y-1/2" style="width:18px;height:18px;color:#666688;"></i>
+          <input id="login-email" type="email" placeholder="you@email.com" required
+            class="w-full pl-11 pr-4 py-3 rounded-xl text-sm"
+            style="background:#1a1a35;border:1px solid #2a2a4a;color:#e8e8f0;"
+            onkeydown="if(event.key==='Enter')handleLogin()">
+        </div>
+        <label for="login-password" class="block text-sm font-medium mb-2" style="color:#c0c0d8;">Password</label>
+        <div class="relative mb-6">
+          <i data-lucide="lock" class="absolute left-3 top-1/2 -translate-y-1/2" style="width:18px;height:18px;color:#666688;"></i>
+          <input id="login-password" type="password" placeholder="••••••••" required
+            class="w-full pl-11 pr-4 py-3 rounded-xl text-sm"
+            style="background:#1a1a35;border:1px solid #2a2a4a;color:#e8e8f0;"
+            onkeydown="if(event.key==='Enter')handleLogin()">
+        </div>
+        <button onclick="handleLogin()" id="login-btn"
+          class="w-full py-3 rounded-xl font-semibold text-sm glow-btn transition-all hover:brightness-110"
+          style="background:#FFBE32;color:#0f0f1e;">Sign In</button>
+        <p class="text-center mt-8 text-sm" style="color:#8888aa;">
+          Don't have an account?
+          <a href="/register" class="font-semibold hover:underline" style="color:#FFBE32;">Sign up</a>
+        </p>
+      </div>
+    </div>
+  </div>
+  <script src="/js/swatter.js"></script>
+  <script>
+    async function handleLogin() {
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+      const errBox = document.getElementById('error-box');
+      const btn = document.getElementById('login-btn');
+      errBox.classList.add('hidden');
+      if (!email || !password) {
+        errBox.textContent = 'Please fill in all fields.';
+        errBox.classList.remove('hidden');
+        return;
+      }
+      if (!email.includes('@') || !email.includes('.') || email.indexOf('@') > email.lastIndexOf('.')) {
+        errBox.textContent = 'Please enter a valid email address (must contain @ and a domain).';
+        errBox.classList.remove('hidden');
+        return;
+      }
+      if (password.length < 8) {
+        errBox.textContent = 'Password must be at least 8 characters.';
+        errBox.classList.remove('hidden');
+        return;
+      }
+      btn.textContent = 'Signing in…';
+      btn.disabled = true;
+      const { ok, data } = await apiFetch('/login', 'POST', { email, password });
+      if (!ok || data.error) {
+        errBox.textContent = data.error || 'Login failed.';
+        errBox.classList.remove('hidden');
+        btn.textContent = 'Sign In';
+        btn.disabled = false;
+        return;
+      }
+      if (['admin', 'manager', 'moderator'].includes(data.role)) {
+        window.location.href = '/admin';
+      } else {
+        window.location.href = '/dashboard';
+      }
+    }
+    lucide.createIcons();
+  </script>
+</body>
+</html>

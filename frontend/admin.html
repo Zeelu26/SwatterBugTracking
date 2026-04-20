@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Swatter – Admin Portal</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/swatter.css">
+  <style>body{background:#0f0f1e;} .tab-btn.active{background:rgba(255,190,50,0.1);color:#FFBE32;} .tab-btn{color:#8888aa;}</style>
+</head>
+<body class="h-full overflow-auto">
+<div class="h-full flex flex-col">
+
+  <header class="sticky top-0 z-20 px-6 py-3 flex items-center justify-between" style="background:rgba(15,15,30,0.9);backdrop-filter:blur(12px);border-bottom:1px solid #1e1e3a;">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:#FFBE32;">
+        <svg viewBox="0 0 24 24" width="20" height="20" style="color:#0f0f1e;"><rect x="10" y="14" width="4" height="8" fill="currentColor"/><circle cx="12" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16" cy="6" r="2.5" fill="currentColor" opacity="0.7"/></svg>
+      </div>
+      <span class="text-lg font-bold" style="color:#FFBE32;">Swatter</span>
+      <span class="text-xs px-2 py-0.5 rounded-full font-medium ml-2" style="background:rgba(239,68,68,0.12);color:#ef4444;">ADMIN</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <span id="admin-name" class="text-sm hidden sm:inline" style="color:#c0c0d8;"></span>
+      <span id="admin-role" class="text-xs px-2 py-0.5 rounded-full font-medium hidden sm:inline" style="background:rgba(255,190,50,0.12);color:#FFBE32;"></span>
+      <button onclick="handleLogout()" class="px-3 py-2 rounded-xl text-xs font-medium" style="color:#8888aa;background:#1a1a35;border:1px solid #2a2a4a;">Sign Out</button>
+    </div>
+  </header>
+
+  <div class="flex border-b px-6 gap-1 pt-2" style="border-color:#1e1e3a;background:#0a0a18;">
+    <button onclick="switchTab('overview')" id="tab-overview" class="tab-btn active px-4 py-2.5 rounded-t-xl text-sm font-medium transition-all">Overview</button>
+    <button onclick="switchTab('bugs')" id="tab-bugs" class="tab-btn px-4 py-2.5 rounded-t-xl text-sm font-medium transition-all">All Bugs</button>
+    <button onclick="switchTab('users')" id="tab-users" class="tab-btn px-4 py-2.5 rounded-t-xl text-sm font-medium transition-all">Users</button>
+  </div>
+
+  <main class="flex-1 overflow-auto p-6">
+
+    <!-- OVERVIEW TAB -->
+    <div id="panel-overview">
+      <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+        <div class="stat-card p-4 rounded-2xl" style="background:#1a1a35;border:1px solid #2a2a4a;">
+          <p class="text-xs mb-1" style="color:#666688;">Total Bugs</p>
+          <p id="st-total" class="text-2xl font-bold mono" style="color:#e8e8f0;">0</p>
+        </div>
+        <div class="stat-card p-4 rounded-2xl" style="background:#1a1a35;border:1px solid #2a2a4a;">
+          <p class="text-xs mb-1" style="color:#ef4444;">Open</p>
+          <p id="st-open" class="text-2xl font-bold mono" style="color:#e8e8f0;">0</p>
+        </div>
+        <div class="stat-card p-4 rounded-2xl" style="background:#1a1a35;border:1px solid #2a2a4a;">
+          <p class="text-xs mb-1" style="color:#FFBE32;">In Progress</p>
+          <p id="st-progress" class="text-2xl font-bold mono" style="color:#e8e8f0;">0</p>
+        </div>
+        <div class="stat-card p-4 rounded-2xl" style="background:#1a1a35;border:1px solid #2a2a4a;">
+          <p class="text-xs mb-1" style="color:#22c55e;">Resolved</p>
+          <p id="st-resolved" class="text-2xl font-bold mono" style="color:#e8e8f0;">0</p>
+        </div>
+        <div class="stat-card p-4 rounded-2xl" style="background:#1a1a35;border:1px solid #2a2a4a;">
+          <p class="text-xs mb-1" style="color:#666688;">Users</p>
+          <p id="st-users" class="text-2xl font-bold mono" style="color:#e8e8f0;">0</p>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="rounded-2xl p-5" style="background:#1a1a35;border:1px solid #2a2a4a;">
+          <h3 class="text-sm font-semibold mb-4" style="color:#e8e8f0;">By Priority</h3>
+          <div id="priority-bars"></div>
+        </div>
+        <div class="rounded-2xl p-5" style="background:#1a1a35;border:1px solid #2a2a4a;">
+          <h3 class="text-sm font-semibold mb-4" style="color:#e8e8f0;">By Category</h3>
+          <div id="category-bars"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BUGS TAB -->
+    <div id="panel-bugs" class="hidden">
+      <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+        <div class="flex gap-2 flex-wrap">
+          <select id="filter-status" onchange="loadAllBugs()" class="px-3 py-2 rounded-xl text-xs" style="background:#1a1a35;border:1px solid #2a2a4a;color:#e8e8f0;">
+            <option value="">All Status</option><option value="open">Open</option><option value="in-progress">In Progress</option><option value="resolved">Resolved</option><option value="closed">Closed</option>
+          </select>
+          <select id="filter-priority" onchange="loadAllBugs()" class="px-3 py-2 rounded-xl text-xs" style="background:#1a1a35;border:1px solid #2a2a4a;color:#e8e8f0;">
+            <option value="">All Priority</option><option value="critical">Critical</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option>
+          </select>
+          <select id="filter-category" onchange="loadAllBugs()" class="px-3 py-2 rounded-xl text-xs" style="background:#1a1a35;border:1px solid #2a2a4a;color:#e8e8f0;">
+            <option value="">All Categories</option><option value="ui">UI</option><option value="backend">Backend</option><option value="database">Database</option><option value="api">API</option><option value="security">Security</option><option value="other">Other</option>
+          </select>
+        </div>
+        <input type="text" id="bug-search" placeholder="Search bugs..." oninput="filterBugSearch()" class="px-3 py-2 rounded-xl text-xs w-48" style="background:#1a1a35;border:1px solid #2a2a4a;color:#e8e8f0;">
+      </div>
+      <div class="rounded-2xl" style="background:#1a1a35;border:1px solid #2a2a4a;">
+        <div id="all-bugs-list"></div>
+      </div>
+    </div>
+
+    <!-- USERS TAB -->
+    <div id="panel-users" class="hidden">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-lg font-bold" style="color:#e8e8f0;">User Management</h2>
+        <button onclick="showCreateUserModal()" class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all hover:brightness-110" style="background:#FFBE32;color:#0f0f1e;" id="create-user-btn">
+          <i data-lucide="user-plus" style="width:16px;height:16px;"></i> Create Staff
+        </button>
+      </div>
+      <div class="rounded-2xl" style="background:#1a1a35;border:1px solid #2a2a4a;">
+        <div id="users-list"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- CREATE USER MODAL -->
+<div id="create-user-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);">
+  <div class="w-full max-w-md rounded-2xl p-6 anim-fade-up" style="background:#1a1a35;border:1px solid #2a2a4a;">
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-lg font-bold" style="color:#e8e8f0;">Create Staff Account</h2>
+      <button onclick="closeModal('create-user-modal')" class="p-1.5 rounded-lg" style="color:#666688;"><i data-lucide="x" style="width:20px;height:20px;"></i></button>
+    </div>
+    <label class="block text-sm font-medium mb-2" style="color:#c0c0d8;">Name</label>
+    <input id="new-user-name" type="text" placeholder="Full name" class="w-full px-4 py-2.5 rounded-xl text-sm mb-4" style="background:#0f0f1e;border:1px solid #2a2a4a;color:#e8e8f0;">
+    <label class="block text-sm font-medium mb-2" style="color:#c0c0d8;">Email</label>
+    <input id="new-user-email" type="email" placeholder="email@example.com" class="w-full px-4 py-2.5 rounded-xl text-sm mb-4" style="background:#0f0f1e;border:1px solid #2a2a4a;color:#e8e8f0;">
+    <label class="block text-sm font-medium mb-2" style="color:#c0c0d8;">Password</label>
+    <input id="new-user-pw" type="password" placeholder="Min 8 characters" class="w-full px-4 py-2.5 rounded-xl text-sm mb-4" style="background:#0f0f1e;border:1px solid #2a2a4a;color:#e8e8f0;">
+    <label class="block text-sm font-medium mb-2" style="color:#c0c0d8;">Role</label>
+    <select id="new-user-role" class="w-full px-4 py-2.5 rounded-xl text-sm mb-6" style="background:#0f0f1e;border:1px solid #2a2a4a;color:#e8e8f0;">
+      <option value="moderator">Moderator</option>
+      <option value="manager">Manager</option>
+      <option value="admin">Admin</option>
+    </select>
+    <button onclick="createUser()" class="w-full py-2.5 rounded-xl text-sm font-semibold transition-all hover:brightness-110" style="background:#FFBE32;color:#0f0f1e;">Create Account</button>
+  </div>
+</div>
+
+<!-- BUG DETAIL MODAL -->
+<div id="admin-bug-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);">
+  <div class="w-full max-w-2xl rounded-2xl p-6 anim-fade-up max-h-[90vh] overflow-auto" style="background:#1a1a35;border:1px solid #2a2a4a;">
+    <div class="flex items-center justify-between mb-4">
+      <div><span id="ab-id" class="mono text-xs font-bold" style="color:#FFBE32;"></span><h2 id="ab-title" class="text-lg font-bold mt-1" style="color:#e8e8f0;"></h2></div>
+      <button onclick="closeModal('admin-bug-modal')" class="p-1.5 rounded-lg" style="color:#666688;"><i data-lucide="x" style="width:20px;height:20px;"></i></button>
+    </div>
+    <div class="grid grid-cols-2 gap-4 mb-4">
+      <div><p class="text-xs mb-1" style="color:#8888aa;">Status</p>
+        <select id="ab-status" onchange="changeStatus()" class="w-full px-3 py-2 rounded-lg text-xs" style="background:#0f0f1e;border:1px solid #2a2a4a;color:#e8e8f0;">
+          <option value="open">Open</option><option value="in-progress">In Progress</option><option value="resolved">Resolved</option><option value="closed">Closed</option>
+        </select>
+      </div>
+      <div><p class="text-xs mb-1" style="color:#8888aa;">Assign To</p>
+        <select id="ab-assignee" onchange="assignBug()" class="w-full px-3 py-2 rounded-lg text-xs" style="background:#0f0f1e;border:1px solid #2a2a4a;color:#e8e8f0;">
+          <option value="">Unassigned</option>
+        </select>
+      </div>
+    </div>
+    <div class="mb-4 pb-4" style="border-bottom:1px solid #2a2a4a;">
+      <div class="flex gap-2 mb-3">
+        <span id="ab-priority" class="text-xs px-2 py-0.5 rounded-full font-medium"></span>
+        <span id="ab-category" class="text-xs px-2 py-0.5 rounded-full font-medium" style="background:rgba(139,92,246,0.12);color:#8b5cf6;"></span>
+      </div>
+      <p class="text-xs mb-1" style="color:#8888aa;">Reporter: <span id="ab-reporter" style="color:#c0c0d8;"></span></p>
+      <p id="ab-desc" class="text-sm mt-2" style="color:#c0c0d8;line-height:1.5;"></p>
+    </div>
+    <div class="mb-4">
+      <h3 class="text-sm font-semibold mb-3" style="color:#e8e8f0;">Activity Log</h3>
+      <div id="ab-activity" class="space-y-2 max-h-32 overflow-y-auto mb-4"></div>
+    </div>
+    <div class="mb-4">
+      <h3 class="text-sm font-semibold mb-3" style="color:#e8e8f0;">Comments</h3>
+      <div id="ab-comments" class="space-y-2 max-h-40 overflow-y-auto mb-4"></div>
+    </div>
+    <div class="flex gap-2 mb-4">
+      <textarea id="ab-comment" rows="2" placeholder="Add comment..." class="flex-1 px-3 py-2 rounded-lg text-sm resize-none" style="background:#0f0f1e;border:1px solid #2a2a4a;color:#e8e8f0;"></textarea>
+      <div class="flex flex-col gap-1">
+        <button onclick="postComment(false)" class="px-3 py-1.5 rounded-lg text-xs font-medium" style="background:#FFBE32;color:#0f0f1e;">Comment</button>
+        <button onclick="postComment(true)" class="px-3 py-1.5 rounded-lg text-xs font-medium" style="background:#22c55e;color:#0f0f1e;">Resolve</button>
+      </div>
+    </div>
+    <div class="flex justify-end" id="ab-delete-section">
+      <button onclick="deleteBug()" class="px-4 py-2 rounded-lg text-xs font-medium" style="background:rgba(239,68,68,0.12);color:#ef4444;border:1px solid rgba(239,68,68,0.2);">Delete Bug</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="fixed bottom-6 right-6 z-50 hidden px-5 py-3 rounded-xl text-sm font-medium shadow-2xl anim-fade-up" style="background:#22c55e;color:white;"></div>
+
+<script src="/js/swatter.js"></script>
+<script>
+  let me = null, allBugs = [], staffList = [], currentBugId = null;
+  const PS = { critical:{bg:'rgba(239,68,68,0.12)',color:'#ef4444',label:'Critical'}, high:{bg:'rgba(255,190,50,0.12)',color:'#FFBE32',label:'High'}, medium:{bg:'rgba(59,130,246,0.12)',color:'#3b82f6',label:'Medium'}, low:{bg:'rgba(107,114,128,0.12)',color:'#6b7280',label:'Low'} };
+  const SS = { 'open':{bg:'rgba(239,68,68,0.12)',color:'#ef4444',label:'Open'}, 'in-progress':{bg:'rgba(255,190,50,0.12)',color:'#FFBE32',label:'In Progress'}, 'resolved':{bg:'rgba(34,197,94,0.12)',color:'#22c55e',label:'Resolved'}, 'closed':{bg:'rgba(107,114,128,0.12)',color:'#6b7280',label:'Closed'} };
+  const RC = { admin:'#ef4444', manager:'#FFBE32', moderator:'#3b82f6', user:'#6b7280' };
+
+  async function init() {
+    const { ok, data } = await apiFetch('/me');
+    if (!ok || !['admin','manager','moderator'].includes(data.role)) { window.location.href = '/login'; return; }
+    me = data;
+    document.getElementById('admin-name').textContent = data.name;
+    document.getElementById('admin-role').textContent = data.role.charAt(0).toUpperCase() + data.role.slice(1);
+    if (!['admin','manager'].includes(data.role)) document.getElementById('create-user-btn').classList.add('hidden');
+    if (data.role !== 'admin' && data.role !== 'manager') {
+      const opts = document.getElementById('new-user-role').options;
+      for (let i = opts.length-1; i >= 0; i--) { if (['admin','manager'].includes(opts[i].value)) opts.remove(i); }
+    }
+    await Promise.all([loadStats(), loadAllBugs(), loadUsers(), loadStaff()]);
+    lucide.createIcons();
+  }
+
+  function switchTab(tab) {
+    ['overview','bugs','users'].forEach(t => {
+      document.getElementById('panel-'+t).classList.toggle('hidden', t !== tab);
+      document.getElementById('tab-'+t).classList.toggle('active', t === tab);
+    });
+  }
+
+  async function loadStats() {
+    const { ok, data } = await apiFetch('/stats');
+    if (!ok) return;
+    document.getElementById('st-total').textContent = data.total;
+    document.getElementById('st-open').textContent = data.open;
+    document.getElementById('st-progress').textContent = data['in-progress'];
+    document.getElementById('st-resolved').textContent = data.resolved;
+    document.getElementById('st-users').textContent = data.total_users;
+    const pBars = document.getElementById('priority-bars');
+    const pColors = { critical:'#ef4444', high:'#FFBE32', medium:'#3b82f6', low:'#6b7280' };
+    pBars.innerHTML = Object.entries(data.priorities).map(([k,v]) => `<div class="flex items-center gap-3 mb-3"><span class="text-xs w-16 capitalize" style="color:${pColors[k]}">${k}</span><div class="flex-1 h-6 rounded-full overflow-hidden" style="background:#0f0f1e;"><div class="h-full rounded-full" style="width:${Math.max(data.total?v/data.total*100:0,2)}%;background:${pColors[k]};"></div></div><span class="text-xs mono w-8 text-right" style="color:#e8e8f0;">${v}</span></div>`).join('');
+    const cBars = document.getElementById('category-bars');
+    cBars.innerHTML = Object.entries(data.categories).map(([k,v]) => `<div class="flex items-center gap-3 mb-3"><span class="text-xs w-16 capitalize" style="color:#8b5cf6;">${k}</span><div class="flex-1 h-6 rounded-full overflow-hidden" style="background:#0f0f1e;"><div class="h-full rounded-full" style="width:${Math.max(data.total?v/data.total*100:0,2)}%;background:#8b5cf6;"></div></div><span class="text-xs mono w-8 text-right" style="color:#e8e8f0;">${v}</span></div>`).join('');
+  }
+
+  async function loadAllBugs() {
+    let params = [];
+    const st = document.getElementById('filter-status')?.value;
+    const pr = document.getElementById('filter-priority')?.value;
+    const cat = document.getElementById('filter-category')?.value;
+    if (st) params.push('status='+st);
+    if (pr) params.push('priority='+pr);
+    if (cat) params.push('category='+cat);
+    const qs = params.length ? '?' + params.join('&') : '';
+    const { ok, data } = await apiFetch('/bugs' + qs);
+    if (!ok) return;
+    allBugs = data;
+    renderBugsList(data);
+  }
+
+  function filterBugSearch() {
+    const q = document.getElementById('bug-search').value.toLowerCase();
+    const filtered = q ? allBugs.filter(b => b.title.toLowerCase().includes(q) || String(b.id).includes(q)) : allBugs;
+    renderBugsList(filtered);
+  }
+
+  function renderBugsList(bugs) {
+    const el = document.getElementById('all-bugs-list');
+    if (!bugs.length) { el.innerHTML = '<div class="px-5 py-8 text-center text-sm" style="color:#8888aa;">No bugs found.</div>'; return; }
+    el.innerHTML = bugs.map((b,i) => {
+      const p = PS[b.priority]||PS.medium, s = SS[b.status]||SS.open;
+      return `<div class="bug-row px-5 py-3 flex items-center gap-3 cursor-pointer" onclick="openBugAdmin(${b.id})" style="border-bottom:1px solid #2a2a4a;">
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 mb-1 flex-wrap">
+            <span class="mono text-xs font-bold" style="color:#FFBE32;">#${b.id}</span>
+            <span class="text-xs px-2 py-0.5 rounded-full font-medium" style="background:${p.bg};color:${p.color};">${p.label}</span>
+            <span class="text-xs px-2 py-0.5 rounded-full font-medium" style="background:${s.bg};color:${s.color};">${s.label}</span>
+            <span class="text-xs px-2 py-0.5 rounded-full font-medium" style="background:rgba(139,92,246,0.12);color:#8b5cf6;">${b.category||'other'}</span>
+          </div>
+          <p class="text-sm font-medium truncate" style="color:#e8e8f0;">${esc(b.title)}</p>
+          <p class="text-xs mt-1" style="color:#666688;">by ${esc(b.reporter_name||'—')} · ${timeAgo(b.created_at)}${b.assignee_name?' · → '+esc(b.assignee_name):''}</p>
+        </div>
+        <i data-lucide="chevron-right" style="width:16px;height:16px;color:#444466;"></i>
+      </div>`;
+    }).join('');
+    lucide.createIcons();
+  }
+
+  async function loadStaff() {
+    const { ok, data } = await apiFetch('/admin/staff');
+    if (ok) staffList = data;
+  }
+
+  async function openBugAdmin(bid) {
+    currentBugId = bid;
+    const { ok, data: bug } = await apiFetch(`/bugs/${bid}`);
+    if (!ok) return;
+    const p = PS[bug.priority]||PS.medium;
+    document.getElementById('ab-id').textContent = '#'+bug.id;
+    document.getElementById('ab-title').textContent = bug.title;
+    document.getElementById('ab-priority').textContent = p.label;
+    document.getElementById('ab-priority').style.background = p.bg;
+    document.getElementById('ab-priority').style.color = p.color;
+    document.getElementById('ab-category').textContent = bug.category||'other';
+    document.getElementById('ab-reporter').textContent = bug.reporter_name||'—';
+    document.getElementById('ab-desc').textContent = bug.description||'No description.';
+    document.getElementById('ab-status').value = bug.status;
+    const asel = document.getElementById('ab-assignee');
+    asel.innerHTML = '<option value="">Unassigned</option>' + staffList.map(s => `<option value="${s.id}" ${bug.assignee_id==s.id?'selected':''}>${esc(s.name)} (${s.role})</option>`).join('');
+    const act = document.getElementById('ab-activity');
+    act.innerHTML = (bug.activity||[]).map(a => `<div class="flex items-center gap-2 text-xs" style="color:#666688;"><span style="color:#FFBE32;">${esc(a.user_name)}</span><span>${esc(a.action)}</span><span>${esc(a.details)}</span><span class="ml-auto">${timeAgo(a.created_at)}</span></div>`).join('') || '<p class="text-xs" style="color:#666688;">No activity yet.</p>';
+    const cm = document.getElementById('ab-comments');
+    cm.innerHTML = (bug.comments||[]).map(c => `<div class="p-2 rounded-lg" style="background:#0f0f1e;border:1px solid #2a2a4a;"><div class="flex items-center justify-between mb-1"><span class="text-xs font-semibold" style="color:#FFBE32;">${esc(c.author_name)}</span>${c.is_resolution?'<span class="text-xs px-2 py-0.5 rounded-full" style="background:rgba(34,197,94,0.12);color:#22c55e;">Resolution</span>':''}</div><p class="text-xs" style="color:#c0c0d8;">${esc(c.text)}</p></div>`).join('') || '<p class="text-xs" style="color:#666688;">No comments.</p>';
+    document.getElementById('ab-delete-section').classList.toggle('hidden', !['admin','manager'].includes(me.role));
+    document.getElementById('ab-comment').value = '';
+    document.getElementById('admin-bug-modal').classList.remove('hidden');
+    lucide.createIcons();
+  }
+
+  async function changeStatus() {
+    const st = document.getElementById('ab-status').value;
+    const { ok, data } = await apiFetch(`/bugs/${currentBugId}/status`, 'PATCH', { status: st });
+    if (!ok) { showToast(data?.error||'Failed','#ef4444'); return; }
+    showToast('Status updated');
+    await loadAllBugs(); await loadStats();
+  }
+
+  async function assignBug() {
+    const aid = document.getElementById('ab-assignee').value;
+    const { ok, data } = await apiFetch(`/bugs/${currentBugId}/assign`, 'PATCH', { assignee_id: aid || null });
+    if (!ok) { showToast(data?.error||'Failed','#ef4444'); return; }
+    showToast('Bug assigned');
+    await loadAllBugs();
+  }
+
+  async function postComment(isRes) {
+    const text = document.getElementById('ab-comment').value.trim();
+    if (!text) { showToast('Enter text','#ef4444'); return; }
+    const { ok, data } = await apiFetch(`/bugs/${currentBugId}/comments`, 'POST', { text, is_resolution: isRes });
+    if (!ok) { showToast(data?.error||'Failed','#ef4444'); return; }
+    showToast(isRes ? 'Bug resolved!' : 'Comment added');
+    if (isRes) { closeModal('admin-bug-modal'); await loadAllBugs(); await loadStats(); }
+    else { openBugAdmin(currentBugId); }
+  }
+
+  async function deleteBug() {
+    if (!confirm('Delete this bug permanently?')) return;
+    const { ok, data } = await apiFetch(`/bugs/${currentBugId}`, 'DELETE');
+    if (!ok) { showToast(data?.error||'Failed','#ef4444'); return; }
+    showToast('Bug deleted');
+    closeModal('admin-bug-modal');
+    await loadAllBugs(); await loadStats();
+  }
+
+  async function loadUsers() {
+    const { ok, data } = await apiFetch('/admin/users');
+    if (!ok) return;
+    const el = document.getElementById('users-list');
+    el.innerHTML = data.map(u => {
+      const c = RC[u.role]||'#6b7280';
+      const canEdit = ['admin','manager'].includes(me.role) && u.id !== me.id;
+      return `<div class="px-5 py-3 flex items-center gap-4" style="border-bottom:1px solid #2a2a4a;">
+        <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold" style="background:${c};color:#0f0f1e;">${esc(u.name.substring(0,2).toUpperCase())}</div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium truncate" style="color:#e8e8f0;">${esc(u.name)}</p>
+          <p class="text-xs" style="color:#666688;">${esc(u.email)}</p>
+        </div>
+        <span class="text-xs px-2 py-0.5 rounded-full font-medium capitalize" style="background:${c}22;color:${c};">${u.role}</span>
+        ${!u.is_active?'<span class="text-xs px-2 py-0.5 rounded-full" style="background:rgba(239,68,68,0.12);color:#ef4444;">Disabled</span>':''}
+        ${canEdit?`<select onchange="changeRole(${u.id},this.value)" class="px-2 py-1 rounded-lg text-xs" style="background:#0f0f1e;border:1px solid #2a2a4a;color:#e8e8f0;">
+          <option value="" disabled selected>Role</option>
+          <option value="user">User</option>
+          <option value="moderator">Moderator</option>
+          ${me.role==='admin'?'<option value="manager">Manager</option>':''}
+        </select>`:''}
+        ${me.role==='admin'&&u.id!==me.id&&u.role!=='admin'?`<button onclick="toggleUser(${u.id})" class="text-xs px-2 py-1 rounded-lg" style="background:rgba(255,190,50,0.12);color:#FFBE32;">${u.is_active?'Disable':'Enable'}</button>`:''}
+      </div>`;
+    }).join('');
+    lucide.createIcons();
+  }
+
+  async function changeRole(uid, role) {
+    if (!role) return;
+    const { ok, data } = await apiFetch(`/admin/users/${uid}/role`, 'PATCH', { role });
+    if (!ok) { showToast(data?.error||'Failed','#ef4444'); return; }
+    showToast('Role updated');
+    await loadUsers(); await loadStaff();
+  }
+
+  async function toggleUser(uid) {
+    const { ok, data } = await apiFetch(`/admin/users/${uid}/toggle`, 'PATCH');
+    if (!ok) { showToast(data?.error||'Failed','#ef4444'); return; }
+    showToast(data.message);
+    await loadUsers();
+  }
+
+  function showCreateUserModal() { document.getElementById('create-user-modal').classList.remove('hidden'); lucide.createIcons(); }
+  function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+  async function createUser() {
+    const name = document.getElementById('new-user-name').value.trim();
+    const email = document.getElementById('new-user-email').value.trim();
+    const pw = document.getElementById('new-user-pw').value;
+    const role = document.getElementById('new-user-role').value;
+    if (!name||!email||!pw) { showToast('All fields required','#ef4444'); return; }
+    const { ok, data } = await apiFetch('/admin/users', 'POST', { name, email, password: pw, role });
+    if (!ok) { showToast(data?.error||'Failed','#ef4444'); return; }
+    showToast(data.message);
+    closeModal('create-user-modal');
+    document.getElementById('new-user-name').value = '';
+    document.getElementById('new-user-email').value = '';
+    document.getElementById('new-user-pw').value = '';
+    await loadUsers(); await loadStaff(); await loadStats();
+  }
+
+  init();
+</script>
+</body>
+</html>

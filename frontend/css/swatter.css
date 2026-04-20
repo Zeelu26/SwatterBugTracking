@@ -1,0 +1,83 @@
+/* ============================================================
+   swatter.css — custom styles for the Swatter Bug Tracking app
+   ============================================================
+   tailwind handles most of the styling via utility classes in the HTML.
+   this file adds custom animations, scrollbar styling, and a few
+   special effects that tailwind doesn't cover out of the box.
+   ============================================================ */
+
+
+/* reset all elements to use border-box sizing
+   this means padding and borders are included in the element's total width/height
+   so a 100px wide box stays 100px even if you add padding */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* make html and body take up the full height of the screen
+   DM Sans is our main font — it's a clean, modern sans-serif */
+html, body { height: 100%; font-family: 'DM Sans', sans-serif; }
+
+/* hex-pattern creates a subtle dot grid background
+   it uses a tiny radial gradient repeated every 28px
+   the gold color at 7% opacity is barely visible — adds texture without distraction */
+.hex-pattern {
+  background-image: radial-gradient(circle at 1px 1px, rgba(255,190,50,0.07) 1px, transparent 0);
+  background-size: 28px 28px;
+}
+
+/* fadeUp animation — elements slide up 18px and fade in
+   used when page sections load in */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* slideRight animation — elements slide in from the left
+   used for sidebar items appearing */
+@keyframes slideRight {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* pulse-glow animation — a soft gold glow that pulses in and out
+   used on the main action buttons (Sign In, Create Account, etc) */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,190,50,0.3); }
+  50% { box-shadow: 0 0 20px 4px rgba(255,190,50,0.15); }
+}
+
+/* animation utility classes — add these to any element to animate it */
+.anim-fade-up { animation: fadeUp 0.5s ease-out both; }
+.anim-slide-right { animation: slideRight 0.5s ease-out both; }
+
+/* delay classes — stagger animations so elements appear one after another
+   delay-1 = 0.1s delay, delay-2 = 0.2s, etc */
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+.delay-4 { animation-delay: 0.4s; }
+.delay-5 { animation-delay: 0.5s; }
+.delay-6 { animation-delay: 0.6s; }
+
+/* apply the pulsing glow effect to buttons with this class */
+.glow-btn { animation: pulse-glow 2.5s ease-in-out infinite; }
+
+/* stat cards lift up 3px when you hover over them — gives a subtle 3D feel */
+.stat-card:hover { transform: translateY(-3px); transition: all 0.3s ease; }
+.stat-card { transition: all 0.3s ease; }
+
+/* bug rows get a faint gold highlight when you hover — shows they're clickable */
+.bug-row:hover { background: rgba(255,190,50,0.04); }
+.bug-row { transition: background 0.2s ease; }
+
+/* remove the default blue outline on focused inputs
+   our dark theme uses border color changes instead */
+input:focus, select:focus, textarea:focus { outline: none; }
+
+/* Space Mono is our monospace font — used for bug IDs like #42 */
+.mono { font-family: 'Space Mono', monospace; }
+
+/* custom scrollbar styling for webkit browsers (Chrome, Edge, Safari)
+   makes the scrollbar thin and dark to match our theme */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #1a1a2e; }
+::-webkit-scrollbar-thumb { background: #333355; border-radius: 3px; }

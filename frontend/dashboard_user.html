@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Swatter – My Bugs</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/swatter.css">
+  <style>body { background: #0f0f1e; }</style>
+</head>
+<body class="h-full overflow-auto">
+  <div class="h-full w-full flex flex-col">
+    <header class="sticky top-0 z-20 px-6 py-4 flex items-center justify-between"
+      style="background:rgba(15,15,30,0.85);backdrop-filter:blur(12px);border-bottom:1px solid #1e1e3a;">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:#FFBE32;">
+          <svg viewBox="0 0 24 24" width="20" height="20" style="color:#0f0f1e;"><rect x="10" y="14" width="4" height="8" fill="currentColor"/><circle cx="12" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16" cy="6" r="2.5" fill="currentColor" opacity="0.7"/></svg>
+        </div>
+        <span class="text-lg font-bold" style="color:#FFBE32;">Swatter</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span id="user-name" class="text-sm hidden sm:inline" style="color:#c0c0d8;"></span>
+        <button onclick="handleLogout()" class="px-3 py-2 rounded-xl text-xs font-medium" style="color:#8888aa;background:#1a1a35;border:1px solid #2a2a4a;">Sign Out</button>
+      </div>
+    </header>
+    <main class="flex-1 overflow-auto p-6">
+      <div class="max-w-2xl mx-auto">
+        <div class="anim-fade-up mb-6">
+          <h2 class="text-2xl font-bold mb-2" style="color:#e8e8f0;">My Bugs</h2>
+          <p style="color:#8888aa;">Report bugs and track their status</p>
+        </div>
+        <button onclick="showNewBugModal()" class="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold mb-6 transition-all hover:brightness-110 anim-fade-up delay-1" style="background:#FFBE32;color:#0f0f1e;">
+          <i data-lucide="plus" style="width:18px;height:18px;"></i> Report New Bug
+        </button>
+        <div class="rounded-2xl anim-fade-up delay-2" style="background:#1a1a35;border:1px solid #2a2a4a;">
+          <div class="px-5 py-4" style="border-bottom:1px solid #2a2a4a;">
+            <h3 class="text-sm font-semibold" style="color:#e8e8f0;">My Reported Bugs</h3>
+          </div>
+          <div id="bug-list"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="new-bug-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);">
+    <div class="w-full max-w-lg rounded-2xl p-6 anim-fade-up" style="background:#1a1a35;border:1px solid #2a2a4a;">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-lg font-bold" style="color:#e8e8f0;">Report New Bug</h2>
+        <button onclick="closeModal('new-bug-modal')" class="p-1.5 rounded-lg" style="color:#666688;"><i data-lucide="x" style="width:20px;height:20px;"></i></button>
+      </div>
+      <label class="block text-sm font-medium mb-2" style="color:#c0c0d8;">Title</label>
+      <input id="bug-title" type="text" placeholder="Brief description" class="w-full px-4 py-2.5 rounded-xl text-sm mb-4" style="background:#0f0f1e;border:1px solid #2a2a4a;color:#e8e8f0;">
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div>
+          <label class="block text-sm font-medium mb-2" style="color:#c0c0d8;">Priority</label>
+          <select id="bug-priority" class="w-full px-4 py-2.5 rounded-xl text-sm" style="background:#0f0f1e;border:1px solid #2a2a4a;color:#e8e8f0;">
+            <option value="critical">Critical</option>
+            <option value="high" selected>High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-2" style="color:#c0c0d8;">Category</label>
+          <select id="bug-category" class="w-full px-4 py-2.5 rounded-xl text-sm" style="background:#0f0f1e;border:1px solid #2a2a4a;color:#e8e8f0;">
+            <option value="ui">UI</option>
+            <option value="backend">Backend</option>
+            <option value="database">Database</option>
+            <option value="api">API</option>
+            <option value="security">Security</option>
+            <option value="other" selected>Other</option>
+          </select>
+        </div>
+      </div>
+      <label class="block text-sm font-medium mb-2" style="color:#c0c0d8;">Description</label>
+      <textarea id="bug-desc" rows="3" placeholder="Describe the bug..." class="w-full px-4 py-2.5 rounded-xl text-sm mb-6 resize-none" style="background:#0f0f1e;border:1px solid #2a2a4a;color:#e8e8f0;"></textarea>
+      <div class="flex gap-3 justify-end">
+        <button onclick="closeModal('new-bug-modal')" class="px-5 py-2.5 rounded-xl text-sm font-medium" style="color:#8888aa;background:#0f0f1e;border:1px solid #2a2a4a;">Cancel</button>
+        <button onclick="submitBug()" class="px-5 py-2.5 rounded-xl text-sm font-semibold transition-all hover:brightness-110" style="background:#FFBE32;color:#0f0f1e;">Submit Bug</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="bug-detail-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);">
+    <div class="w-full max-w-2xl rounded-2xl p-6 anim-fade-up max-h-[90vh] overflow-auto" style="background:#1a1a35;border:1px solid #2a2a4a;">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <span id="detail-bug-id" class="mono text-xs font-bold" style="color:#FFBE32;"></span>
+          <h2 id="detail-bug-title" class="text-lg font-bold mt-1" style="color:#e8e8f0;"></h2>
+        </div>
+        <button onclick="closeModal('bug-detail-modal')" class="p-1.5 rounded-lg" style="color:#666688;"><i data-lucide="x" style="width:20px;height:20px;"></i></button>
+      </div>
+      <div class="mb-6 pb-6" style="border-bottom:1px solid #2a2a4a;">
+        <div class="grid grid-cols-3 gap-4 mb-4">
+          <div><p class="text-xs mb-1" style="color:#8888aa;">Priority</p><span id="detail-priority" class="text-xs px-2 py-1 rounded-full font-medium"></span></div>
+          <div><p class="text-xs mb-1" style="color:#8888aa;">Status</p><span id="detail-status" class="text-xs px-2 py-1 rounded-full font-medium"></span></div>
+          <div><p class="text-xs mb-1" style="color:#8888aa;">Category</p><span id="detail-category" class="text-xs px-2 py-1 rounded-full font-medium" style="background:rgba(139,92,246,0.12);color:#8b5cf6;"></span></div>
+        </div>
+        <div class="mb-4"><p class="text-xs mb-1" style="color:#8888aa;">Assigned to</p><p id="detail-assignee" class="text-sm" style="color:#e8e8f0;"></p></div>
+        <div><p class="text-xs mb-2" style="color:#8888aa;">Description</p><p id="detail-description" class="text-sm" style="color:#c0c0d8;line-height:1.5;"></p></div>
+      </div>
+      <div class="mb-6">
+        <h3 class="text-sm font-semibold mb-4" style="color:#e8e8f0;">Comments</h3>
+        <div id="comments-list" class="space-y-3 mb-4 max-h-48 overflow-y-auto"></div>
+      </div>
+      <div class="mb-4">
+        <div class="flex gap-2">
+          <textarea id="comment-input" rows="2" placeholder="Add a comment..." class="flex-1 px-3 py-2 rounded-lg text-sm resize-none" style="background:#0f0f1e;border:1px solid #2a2a4a;color:#e8e8f0;"></textarea>
+          <button onclick="submitComment()" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all hover:brightness-110" style="background:#FFBE32;color:#0f0f1e;">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="fixed bottom-6 right-6 z-50 hidden px-5 py-3 rounded-xl text-sm font-medium shadow-2xl anim-fade-up" style="background:#22c55e;color:white;"></div>
+
+  <script src="/js/swatter.js"></script>
+  <script>
+    let currentUser = null, currentBugId = null;
+    const PS = { critical:{bg:'rgba(239,68,68,0.12)',color:'#ef4444',label:'Critical'}, high:{bg:'rgba(255,190,50,0.12)',color:'#FFBE32',label:'High'}, medium:{bg:'rgba(59,130,246,0.12)',color:'#3b82f6',label:'Medium'}, low:{bg:'rgba(107,114,128,0.12)',color:'#6b7280',label:'Low'} };
+    const SS = { 'open':{bg:'rgba(239,68,68,0.12)',color:'#ef4444',label:'Open'}, 'in-progress':{bg:'rgba(255,190,50,0.12)',color:'#FFBE32',label:'In Progress'}, 'resolved':{bg:'rgba(34,197,94,0.12)',color:'#22c55e',label:'Resolved'}, 'closed':{bg:'rgba(107,114,128,0.12)',color:'#6b7280',label:'Closed'} };
+
+    async function init() {
+      const { ok, data } = await apiFetch('/me');
+      if (!ok) { window.location.href = '/login'; return; }
+      currentUser = data;
+      document.getElementById('user-name').textContent = data.name;
+      await loadBugs();
+      lucide.createIcons();
+    }
+
+    async function loadBugs() {
+      const { ok, data } = await apiFetch(`/bugs?reporter_id=${currentUser.id}`);
+      const list = document.getElementById('bug-list');
+      if (!ok || !data.length) { list.innerHTML = '<div class="px-5 py-8 text-center text-sm" style="color:#8888aa;">No bugs yet. Report one!</div>'; return; }
+      list.innerHTML = data.map((b,i) => {
+        const p = PS[b.priority]||PS.medium, s = SS[b.status]||SS.open;
+        return `<div class="bug-row px-5 py-4 flex items-center gap-4 cursor-pointer" onclick="openDetail(${b.id})" style="animation:fadeUp 0.3s ease-out ${i*0.04}s both;border-bottom:1px solid #2a2a4a;">
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1 flex-wrap">
+              <span class="mono text-xs font-bold" style="color:#FFBE32;">#${b.id}</span>
+              <span class="text-xs px-2 py-0.5 rounded-full font-medium" style="background:${p.bg};color:${p.color};">${p.label}</span>
+              <span class="text-xs px-2 py-0.5 rounded-full font-medium" style="background:${s.bg};color:${s.color};">${s.label}</span>
+            </div>
+            <p class="text-sm font-medium truncate" style="color:#e8e8f0;">${esc(b.title)}</p>
+            <p class="text-xs mt-1" style="color:#666688;">${timeAgo(b.created_at)}${b.assignee_name ? ' · Assigned to ' + esc(b.assignee_name) : ''}</p>
+          </div>
+          <i data-lucide="chevron-right" style="width:16px;height:16px;color:#444466;"></i>
+        </div>`;
+      }).join('');
+      lucide.createIcons();
+    }
+
+    function showNewBugModal() { document.getElementById('new-bug-modal').classList.remove('hidden'); lucide.createIcons(); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+    async function submitBug() {
+      const title = document.getElementById('bug-title').value.trim();
+      const priority = document.getElementById('bug-priority').value;
+      const category = document.getElementById('bug-category').value;
+      const desc = document.getElementById('bug-desc').value.trim();
+      if (!title) { showToast('Title is required', '#ef4444'); return; }
+      const { ok, data } = await apiFetch('/bugs', 'POST', { title, priority, category, description: desc });
+      if (!ok || data.error) { showToast(data.error || 'Failed', '#ef4444'); return; }
+      showToast(`Bug #${data.id} reported!`);
+      closeModal('new-bug-modal');
+      document.getElementById('bug-title').value = '';
+      document.getElementById('bug-desc').value = '';
+      await loadBugs();
+    }
+
+    async function openDetail(bugId) {
+      currentBugId = bugId;
+      const { ok, data: bug } = await apiFetch(`/bugs/${bugId}`);
+      if (!ok) return;
+      const p = PS[bug.priority]||PS.medium, s = SS[bug.status]||SS.open;
+      document.getElementById('detail-bug-id').textContent = `#${bug.id}`;
+      document.getElementById('detail-bug-title').textContent = bug.title;
+      document.getElementById('detail-priority').textContent = p.label;
+      document.getElementById('detail-priority').style.background = p.bg;
+      document.getElementById('detail-priority').style.color = p.color;
+      document.getElementById('detail-status').textContent = s.label;
+      document.getElementById('detail-status').style.background = s.bg;
+      document.getElementById('detail-status').style.color = s.color;
+      document.getElementById('detail-category').textContent = bug.category || 'Other';
+      document.getElementById('detail-assignee').textContent = bug.assignee_name || 'Unassigned';
+      document.getElementById('detail-description').textContent = bug.description || 'No description.';
+      const cl = document.getElementById('comments-list');
+      if (!bug.comments.length) { cl.innerHTML = '<p class="text-sm" style="color:#8888aa;">No comments yet.</p>'; }
+      else { cl.innerHTML = bug.comments.map(c => `<div class="p-3 rounded-lg" style="background:#0f0f1e;border:1px solid #2a2a4a;"><div class="flex items-center justify-between mb-1"><span class="text-xs font-semibold" style="color:#FFBE32;">${esc(c.author_name)}</span>${c.is_resolution ? '<span class="text-xs px-2 py-0.5 rounded-full font-medium" style="background:rgba(34,197,94,0.12);color:#22c55e;">Resolution</span>' : ''}</div><p class="text-sm" style="color:#c0c0d8;">${esc(c.text)}</p></div>`).join(''); }
+      document.getElementById('comment-input').value = '';
+      document.getElementById('bug-detail-modal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    async function submitComment() {
+      const text = document.getElementById('comment-input').value.trim();
+      if (!text) { showToast('Enter a comment', '#ef4444'); return; }
+      const { ok, data } = await apiFetch(`/bugs/${currentBugId}/comments`, 'POST', { text, is_resolution: false });
+      if (!ok || data.error) { showToast(data.error || 'Failed', '#ef4444'); return; }
+      showToast('Comment added');
+      openDetail(currentBugId);
+    }
+
+    init();
+  </script>
+</body>
+</html>
