@@ -490,10 +490,10 @@ def api_admin_create_user():
         return jsonify({'error': 'Password must be at least 8 characters'}), 400
     my_level = ROLE_HIERARCHY.get(session.get('role'), 0)
     target_level = ROLE_HIERARCHY.get(new_role, 0)
-    if target_level >= my_level:
-        return jsonify({'error': f'Cannot create a {new_role} — that role is equal to or above yours'}), 403
     if new_role == 'admin' and session.get('role') != 'admin':
         return jsonify({'error': 'Only admins can create other admins'}), 403
+    if session.get('role') != 'admin' and target_level >= my_level:
+        return jsonify({'error': f'Cannot create a {new_role} — that role is equal to or above yours'}), 403
     existing = supabase.table('users').select('id').eq('email', email).execute()
     if existing.data and len(existing.data) > 0:
         return jsonify({'error': 'Email already registered'}), 409
