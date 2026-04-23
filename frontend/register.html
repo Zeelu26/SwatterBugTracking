@@ -1,63 +1,46 @@
 <!doctype html>
 <html lang="en" class="h-full">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
   <title>Swatter – Create Account</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/swatter.css">
-  <style>body { background: #0f0f1e; }</style>
+  <style>body{background:#0f0f1e;}</style>
 </head>
 <body class="h-full overflow-auto">
-  <div class="h-full w-full flex items-center justify-center p-6" style="background:#0f0f1e;">
+  <div class="h-full w-full flex items-center justify-center p-6">
     <div class="w-full max-w-md">
       <div class="flex flex-col items-center gap-3 mb-10 anim-fade-up">
         <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background:#FFBE32;">
-          <svg viewBox="0 0 24 24" width="26" height="26" style="color:#0f0f1e;">
-            <rect x="10" y="14" width="4" height="8" fill="currentColor"/>
-            <circle cx="12" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="2"/>
-            <circle cx="16" cy="6" r="2.5" fill="currentColor" opacity="0.7"/>
-            <line x1="15" y1="5" x2="14" y2="3" stroke="currentColor" stroke-width="1.5" opacity="0.7"/>
-            <line x1="17" y1="5" x2="18" y2="3" stroke="currentColor" stroke-width="1.5" opacity="0.7"/>
-          </svg>
+          <svg viewBox="0 0 24 24" width="26" height="26" style="color:#0f0f1e;"><rect x="10" y="14" width="4" height="8" fill="currentColor"/><circle cx="12" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16" cy="6" r="2.5" fill="currentColor" opacity="0.7"/></svg>
         </div>
         <span class="text-3xl font-bold" style="color:#FFBE32;">Swatter</span>
       </div>
-      <div id="error-box" class="hidden mb-4 px-4 py-3 rounded-xl text-sm font-medium"
-        style="background:rgba(239,68,68,0.12);color:#ef4444;border:1px solid rgba(239,68,68,0.2);"></div>
-      <div class="anim-fade-up delay-1">
+      <div id="error-box" class="hidden mb-4 px-4 py-3 rounded-xl text-sm font-medium" style="background:rgba(239,68,68,0.12);color:#ef4444;border:1px solid rgba(239,68,68,0.2);"></div>
+      <div id="success-box" class="hidden mb-4 px-4 py-3 rounded-xl text-sm font-medium" style="background:rgba(34,197,94,0.12);color:#22c55e;border:1px solid rgba(34,197,94,0.2);"></div>
+      <div id="reg-form" class="anim-fade-up delay-1">
         <h2 class="text-2xl font-bold mb-1" style="color:#e8e8f0;">Create account</h2>
         <p class="mb-8" style="color:#8888aa;">Start tracking bugs in minutes</p>
-        <label for="reg-name" class="block text-sm font-medium mb-2" style="color:#c0c0d8;">Full name</label>
+        <label class="block text-sm font-medium mb-2" style="color:#c0c0d8;">Full name</label>
         <div class="relative mb-4">
           <i data-lucide="user" class="absolute left-3 top-1/2 -translate-y-1/2" style="width:18px;height:18px;color:#666688;"></i>
-          <input id="reg-name" type="text" placeholder="Your Name" required
-            class="w-full pl-11 pr-4 py-3 rounded-xl text-sm"
-            style="background:#1a1a35;border:1px solid #2a2a4a;color:#e8e8f0;">
+          <input id="reg-name" type="text" placeholder="Your Name" class="w-full pl-11 pr-4 py-3 rounded-xl text-sm" style="background:#1a1a35;border:1px solid #2a2a4a;color:#e8e8f0;">
         </div>
-        <label for="reg-email" class="block text-sm font-medium mb-2" style="color:#c0c0d8;">Email</label>
+        <label class="block text-sm font-medium mb-2" style="color:#c0c0d8;">Email</label>
         <div class="relative mb-4">
           <i data-lucide="mail" class="absolute left-3 top-1/2 -translate-y-1/2" style="width:18px;height:18px;color:#666688;"></i>
-          <input id="reg-email" type="email" placeholder="you@email.com" required
-            class="w-full pl-11 pr-4 py-3 rounded-xl text-sm"
-            style="background:#1a1a35;border:1px solid #2a2a4a;color:#e8e8f0;">
+          <input id="reg-email" type="email" placeholder="you@email.com" class="w-full pl-11 pr-4 py-3 rounded-xl text-sm" style="background:#1a1a35;border:1px solid #2a2a4a;color:#e8e8f0;">
         </div>
-        <label for="reg-password" class="block text-sm font-medium mb-2" style="color:#c0c0d8;">Password</label>
+        <label class="block text-sm font-medium mb-2" style="color:#c0c0d8;">Password</label>
         <div class="relative mb-6">
           <i data-lucide="lock" class="absolute left-3 top-1/2 -translate-y-1/2" style="width:18px;height:18px;color:#666688;"></i>
-          <input id="reg-password" type="password" placeholder="Min 8 characters" required minlength="8"
-            class="w-full pl-11 pr-4 py-3 rounded-xl text-sm"
-            style="background:#1a1a35;border:1px solid #2a2a4a;color:#e8e8f0;">
+          <input id="reg-password" type="password" placeholder="Min 8 characters" minlength="8" class="w-full pl-11 pr-10 py-3 rounded-xl text-sm" style="background:#1a1a35;border:1px solid #2a2a4a;color:#e8e8f0;">
+          <button type="button" onclick="togglePw('reg-password',this)" class="absolute right-3 top-1/2 -translate-y-1/2" style="color:#666688;background:none;border:none;cursor:pointer;"><i data-lucide="eye" style="width:18px;height:18px;"></i></button>
         </div>
-        <button onclick="handleRegister()" id="reg-btn"
-          class="w-full py-3 rounded-xl font-semibold text-sm glow-btn transition-all hover:brightness-110"
-          style="background:#FFBE32;color:#0f0f1e;">Create Account</button>
-        <p class="text-center mt-8 text-sm" style="color:#8888aa;">
-          Already have an account?
-          <a href="/login" class="font-semibold hover:underline" style="color:#FFBE32;">Sign in</a>
-        </p>
+        <button onclick="handleRegister()" id="reg-btn" class="w-full py-3 rounded-xl font-semibold text-sm glow-btn transition-all hover:brightness-110" style="background:#FFBE32;color:#0f0f1e;">Create Account</button>
+        <p class="text-center mt-8 text-sm" style="color:#8888aa;">Already have an account? <a href="/login" class="font-semibold hover:underline" style="color:#FFBE32;">Sign in</a></p>
       </div>
     </div>
   </div>
@@ -68,39 +51,24 @@
       const email = document.getElementById('reg-email').value.trim();
       const password = document.getElementById('reg-password').value;
       const errBox = document.getElementById('error-box');
+      const successBox = document.getElementById('success-box');
       const btn = document.getElementById('reg-btn');
-      errBox.classList.add('hidden');
-      if (!name || !email || !password) {
-        errBox.textContent = 'All fields are required.';
-        errBox.classList.remove('hidden');
-        return;
-      }
-      if (name.length < 2) {
-        errBox.textContent = 'Name must be at least 2 characters.';
-        errBox.classList.remove('hidden');
-        return;
-      }
-      if (!email.includes('@') || !email.includes('.') || email.indexOf('@') > email.lastIndexOf('.')) {
-        errBox.textContent = 'Please enter a valid email address (must contain @ and a domain).';
-        errBox.classList.remove('hidden');
-        return;
-      }
-      if (password.length < 8) {
-        errBox.textContent = 'Password must be at least 8 characters.';
-        errBox.classList.remove('hidden');
-        return;
-      }
-      btn.textContent = 'Creating…';
-      btn.disabled = true;
+      errBox.classList.add('hidden'); successBox.classList.add('hidden');
+      if (!name || !email || !password) { errBox.textContent='All fields are required.'; errBox.classList.remove('hidden'); return; }
+      if (name.length < 2) { errBox.textContent='Name must be at least 2 characters.'; errBox.classList.remove('hidden'); return; }
+      if (!email.includes('@') || !email.includes('.') || email.indexOf('@')>email.lastIndexOf('.')) { errBox.textContent='Please enter a valid email address.'; errBox.classList.remove('hidden'); return; }
+      if (password.length < 8) { errBox.textContent='Password must be at least 8 characters.'; errBox.classList.remove('hidden'); return; }
+      btn.textContent='Creating…'; btn.disabled=true;
       const { ok, data } = await apiFetch('/register', 'POST', { name, email, password });
-      if (!ok || data.error) {
-        errBox.textContent = data.error || 'Registration failed.';
-        errBox.classList.remove('hidden');
-        btn.textContent = 'Create Account';
-        btn.disabled = false;
-        return;
-      }
+      if (!ok || data.error) { errBox.textContent = data.error || 'Registration failed.'; errBox.classList.remove('hidden'); btn.textContent='Create Account'; btn.disabled=false; return; }
       window.location.href = '/dashboard';
+    }
+    function togglePw(id, btn) {
+      const input = document.getElementById(id);
+      const isHidden = input.type === 'password';
+      input.type = isHidden ? 'text' : 'password';
+      btn.innerHTML = isHidden ? '<i data-lucide="eye-off" style="width:18px;height:18px;"></i>' : '<i data-lucide="eye" style="width:18px;height:18px;"></i>';
+      lucide.createIcons();
     }
     lucide.createIcons();
   </script>
