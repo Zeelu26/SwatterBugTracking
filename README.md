@@ -21,4 +21,4 @@ Bug tracking app with role-based admin, email verification, photo uploads, and r
 3. Update `backend/.env` with your keys
 4. `cd backend && pip install -r requirements.txt`
 5. `python app.py`
-6. Admin login: zeelpatel9262@gmail.com / Zeel7821
+
