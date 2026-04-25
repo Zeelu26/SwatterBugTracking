@@ -18,7 +18,6 @@
       <span class="text-xs px-2 py-0.5 rounded-full font-medium ml-2" style="background:rgba(239,68,68,0.12);color:#ef4444;">ADMIN</span>
     </div>
     <div class="flex items-center gap-3">
-      <a href="/reviews" class="text-xs font-medium px-3 py-2 rounded-xl" style="color:#FFBE32;background:#1a1a35;border:1px solid #2a2a4a;">Reviews</a>
       <span id="admin-name" class="text-sm hidden sm:inline" style="color:#c0c0d8;"></span>
       <span id="admin-role" class="text-xs px-2 py-0.5 rounded-full font-medium hidden sm:inline" style="background:rgba(255,190,50,0.12);color:#FFBE32;"></span>
       <button onclick="handleLogout()" class="px-3 py-2 rounded-xl text-xs font-medium" style="color:#8888aa;background:#1a1a35;border:1px solid #2a2a4a;">Sign Out</button>
@@ -30,6 +29,7 @@
     <button onclick="switchTab('users')" id="tab-users" class="tab-btn px-4 py-2.5 rounded-t-xl text-sm font-medium">Users</button>
   </div>
   <main class="flex-1 overflow-auto p-6">
+
     <!-- OVERVIEW -->
     <div id="panel-overview">
       <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
@@ -39,24 +39,24 @@
         <div class="stat-card p-4 rounded-2xl" style="background:#1a1a35;border:1px solid #2a2a4a;"><p class="text-xs mb-1" style="color:#22c55e;">Resolved</p><p id="st-resolved" class="text-2xl font-bold mono" style="color:#e8e8f0;">0</p></div>
         <div class="stat-card p-4 rounded-2xl" style="background:#1a1a35;border:1px solid #2a2a4a;"><p class="text-xs mb-1" style="color:#666688;">Users</p><p id="st-users" class="text-2xl font-bold mono" style="color:#e8e8f0;">0</p></div>
       </div>
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="rounded-2xl p-5" style="background:#1a1a35;border:1px solid #2a2a4a;"><h3 class="text-sm font-semibold mb-4" style="color:#e8e8f0;">By Priority</h3><div id="priority-bars"></div></div>
-        <div class="rounded-2xl p-5" style="background:#1a1a35;border:1px solid #2a2a4a;"><h3 class="text-sm font-semibold mb-4" style="color:#e8e8f0;">By Category</h3><div id="category-bars"></div></div>
         <div class="rounded-2xl p-5" style="background:#1a1a35;border:1px solid #2a2a4a;"><h3 class="text-sm font-semibold mb-4" style="color:#e8e8f0;">By Role</h3><div id="role-bars"></div></div>
       </div>
     </div>
+
     <!-- BUGS -->
     <div id="panel-bugs" class="hidden">
       <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div class="flex gap-2 flex-wrap">
           <select id="f-status" onchange="loadAllBugs()" class="px-3 py-2 rounded-xl text-xs" style="background:#1a1a35;border:1px solid #2a2a4a;color:#e8e8f0;"><option value="">All Status</option><option value="open">Open</option><option value="in-progress">In Progress</option><option value="resolved">Resolved</option><option value="closed">Closed</option></select>
           <select id="f-priority" onchange="loadAllBugs()" class="px-3 py-2 rounded-xl text-xs" style="background:#1a1a35;border:1px solid #2a2a4a;color:#e8e8f0;"><option value="">All Priority</option><option value="critical">Critical</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select>
-          <select id="f-category" onchange="loadAllBugs()" class="px-3 py-2 rounded-xl text-xs" style="background:#1a1a35;border:1px solid #2a2a4a;color:#e8e8f0;"><option value="">All Categories</option><option value="ui">UI</option><option value="backend">Backend</option><option value="database">Database</option><option value="api">API</option><option value="security">Security</option><option value="other">Other</option></select>
         </div>
         <input type="text" id="bug-search" placeholder="Search bugs..." oninput="searchBugs()" class="px-3 py-2 rounded-xl text-xs w-48" style="background:#1a1a35;border:1px solid #2a2a4a;color:#e8e8f0;">
       </div>
       <div class="rounded-2xl" style="background:#1a1a35;border:1px solid #2a2a4a;"><div id="bugs-list"></div></div>
     </div>
+
     <!-- USERS -->
     <div id="panel-users" class="hidden">
       <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
@@ -68,6 +68,7 @@
       </div>
       <div class="rounded-2xl" style="background:#1a1a35;border:1px solid #2a2a4a;"><div id="users-list"></div></div>
     </div>
+
   </main>
 </div>
 
@@ -98,7 +99,7 @@
       <div><p class="text-xs mb-1" style="color:#8888aa;">Status</p><select id="b-status" onchange="chgStatus()" class="w-full px-3 py-2 rounded-lg text-xs" style="background:#0f0f1e;border:1px solid #2a2a4a;color:#e8e8f0;"><option value="open">Open</option><option value="in-progress">In Progress</option><option value="resolved">Resolved</option><option value="closed">Closed</option></select></div>
       <div><p class="text-xs mb-1" style="color:#8888aa;">Assign To</p><select id="b-assign" onchange="chgAssign()" class="w-full px-3 py-2 rounded-lg text-xs" style="background:#0f0f1e;border:1px solid #2a2a4a;color:#e8e8f0;"><option value="">Unassigned</option></select></div>
     </div>
-    <div class="flex gap-2 mb-3 flex-wrap"><span id="b-priority" class="text-xs px-2 py-0.5 rounded-full font-medium"></span><span id="b-cat" class="text-xs px-2 py-0.5 rounded-full font-medium" style="background:rgba(139,92,246,0.12);color:#8b5cf6;"></span></div>
+    <div class="flex gap-2 mb-3 flex-wrap"><span id="b-priority" class="text-xs px-2 py-0.5 rounded-full font-medium"></span></div>
     <p class="text-xs mb-2" style="color:#8888aa;">Reporter: <span id="b-reporter" style="color:#c0c0d8;"></span></p>
     <p id="b-desc" class="text-sm mt-2 mb-4" style="color:#c0c0d8;line-height:1.5;"></p>
     <img id="b-photo" class="hidden mb-4 rounded-xl max-h-60 object-contain w-full cursor-pointer" style="border:1px solid #2a2a4a;" onclick="window.open(this.src)">
@@ -112,7 +113,13 @@
         <div class="flex flex-col gap-1"><button onclick="postCmt(false)" class="px-3 py-1.5 rounded-lg text-xs font-medium" style="background:#FFBE32;color:#0f0f1e;">Comment</button><button onclick="postCmt(true)" class="px-3 py-1.5 rounded-lg text-xs font-medium" style="background:#22c55e;color:#0f0f1e;">Resolve</button></div>
       </div>
     </div>
-    <div class="flex justify-end" id="b-del-section"><button onclick="delBug()" class="px-4 py-2 rounded-lg text-xs font-medium" style="background:rgba(239,68,68,0.12);color:#ef4444;border:1px solid rgba(239,68,68,0.2);">Delete Bug</button></div>
+    <!-- RATING DISPLAY -->
+    <div id="b-rating" class="hidden pt-3" style="border-top:1px solid #2a2a4a;">
+      <p class="text-xs mb-1" style="color:#8888aa;">Reporter's Rating</p>
+      <p id="b-rating-stars" class="text-lg" style="color:#FFBE32;"></p>
+      <p id="b-rating-text" class="text-sm" style="color:#c0c0d8;"></p>
+    </div>
+    <div class="flex justify-end mt-4" id="b-del-section"><button onclick="delBug()" class="px-4 py-2 rounded-lg text-xs font-medium" style="background:rgba(239,68,68,0.12);color:#ef4444;border:1px solid rgba(239,68,68,0.2);">Delete Bug</button></div>
   </div>
 </div>
 
@@ -148,14 +155,13 @@
     document.getElementById('st-users').textContent=data.total_users;
     const pC={critical:'#ef4444',high:'#FFBE32',medium:'#3b82f6',low:'#6b7280'};
     document.getElementById('priority-bars').innerHTML=Object.entries(data.priorities).map(([k,v])=>`<div class="flex items-center gap-3 mb-3"><span class="text-xs w-16 capitalize" style="color:${pC[k]}">${k}</span><div class="flex-1 h-6 rounded-full overflow-hidden" style="background:#0f0f1e;"><div class="h-full rounded-full" style="width:${Math.max(data.total?v/data.total*100:0,2)}%;background:${pC[k]};"></div></div><span class="text-xs mono w-8 text-right" style="color:#e8e8f0;">${v}</span></div>`).join('');
-    document.getElementById('category-bars').innerHTML=Object.entries(data.categories||{}).map(([k,v])=>`<div class="flex items-center gap-3 mb-3"><span class="text-xs w-16 capitalize" style="color:#8b5cf6;">${k}</span><div class="flex-1 h-6 rounded-full overflow-hidden" style="background:#0f0f1e;"><div class="h-full rounded-full" style="width:${Math.max(data.total?v/data.total*100:0,2)}%;background:#8b5cf6;"></div></div><span class="text-xs mono w-8 text-right" style="color:#e8e8f0;">${v}</span></div>`).join('');
     document.getElementById('role-bars').innerHTML=Object.entries(data.roles||{}).map(([k,v])=>`<div class="flex items-center gap-3 mb-3"><span class="text-xs w-16 capitalize" style="color:${RC[k]||'#666'}">${k}</span><div class="flex-1 h-6 rounded-full overflow-hidden" style="background:#0f0f1e;"><div class="h-full rounded-full" style="width:${Math.max(data.total_users?v/data.total_users*100:0,5)}%;background:${RC[k]||'#666'};"></div></div><span class="text-xs mono w-8 text-right" style="color:#e8e8f0;">${v}</span></div>`).join('');
   }
 
   async function loadAllBugs(){
     let p=[];
-    const s=document.getElementById('f-status')?.value,pr=document.getElementById('f-priority')?.value,c=document.getElementById('f-category')?.value;
-    if(s)p.push('status='+s);if(pr)p.push('priority='+pr);if(c)p.push('category='+c);
+    const s=document.getElementById('f-status')?.value,pr=document.getElementById('f-priority')?.value;
+    if(s)p.push('status='+s);if(pr)p.push('priority='+pr);
     const{ok,data}=await apiFetch('/bugs'+(p.length?'?'+p.join('&'):''));
     if(!ok)return; allBugs=data; renderBugs(data);
   }
@@ -167,7 +173,7 @@
     if(!bugs.length){el.innerHTML='<div class="px-5 py-8 text-center text-sm" style="color:#8888aa;">No bugs found.</div>';return;}
     el.innerHTML=bugs.map(b=>{const p=PS[b.priority]||PS.medium,s=SS[b.status]||SS.open;
       return`<div class="bug-row px-5 py-3 flex items-center gap-3 cursor-pointer" onclick="openBug(${b.id})" style="border-bottom:1px solid #2a2a4a;">
-        <div class="flex-1 min-w-0"><div class="flex items-center gap-2 mb-1 flex-wrap"><span class="mono text-xs font-bold" style="color:#FFBE32;">#${b.id}</span><span class="text-xs px-2 py-0.5 rounded-full font-medium" style="background:${p.bg};color:${p.color};">${p.label}</span><span class="text-xs px-2 py-0.5 rounded-full font-medium" style="background:${s.bg};color:${s.color};">${s.label}</span><span class="text-xs px-2 py-0.5 rounded-full font-medium" style="background:rgba(139,92,246,0.12);color:#8b5cf6;">${b.category||'other'}</span></div>
+        <div class="flex-1 min-w-0"><div class="flex items-center gap-2 mb-1 flex-wrap"><span class="mono text-xs font-bold" style="color:#FFBE32;">#${b.id}</span><span class="text-xs px-2 py-0.5 rounded-full font-medium" style="background:${p.bg};color:${p.color};">${p.label}</span><span class="text-xs px-2 py-0.5 rounded-full font-medium" style="background:${s.bg};color:${s.color};">${s.label}</span></div>
         <p class="text-sm font-medium truncate" style="color:#e8e8f0;">${esc(b.title)}</p>
         <p class="text-xs mt-1" style="color:#666688;">by ${esc(b.reporter_name||'—')} · ${timeAgo(b.created_at)}${b.assignee_name?' · → '+esc(b.assignee_name):''}</p></div>
         ${b.photo_url?'<i data-lucide="image" style="width:16px;height:16px;color:#8b5cf6;"></i>':''}
@@ -183,7 +189,6 @@
     document.getElementById('b-id').textContent='#'+bug.id;
     document.getElementById('b-title').textContent=bug.title;
     document.getElementById('b-priority').textContent=p.label;document.getElementById('b-priority').style.background=p.bg;document.getElementById('b-priority').style.color=p.color;
-    document.getElementById('b-cat').textContent=bug.category||'other';
     document.getElementById('b-reporter').textContent=bug.reporter_name||'—';
     document.getElementById('b-desc').textContent=bug.description||'No description.';
     document.getElementById('b-status').value=bug.status;
@@ -193,6 +198,9 @@
     if(bug.photo_url){photo.src=bug.photo_url;photo.classList.remove('hidden');}else{photo.classList.add('hidden');}
     document.getElementById('b-activity').innerHTML=(bug.activity||[]).map(a=>`<div class="flex items-center gap-2 text-xs" style="color:#666688;"><span style="color:#FFBE32;">${esc(a.user_name)}</span><span>${esc(a.details||a.action)}</span><span class="ml-auto">${timeAgo(a.created_at)}</span></div>`).join('')||'<p class="text-xs" style="color:#666688;">No activity.</p>';
     document.getElementById('b-comments').innerHTML=(bug.comments||[]).map(c=>`<div class="p-2 rounded-lg" style="background:#0f0f1e;border:1px solid #2a2a4a;"><div class="flex items-center gap-2 mb-1"><span class="text-xs font-semibold" style="color:#FFBE32;">${esc(c.author_name)}</span>${c.is_resolution?'<span class="text-xs px-2 py-0.5 rounded-full" style="background:rgba(34,197,94,0.12);color:#22c55e;">Resolution</span>':''}</div><p class="text-xs" style="color:#c0c0d8;">${esc(c.text)}</p></div>`).join('')||'<p class="text-xs" style="color:#666688;">No comments.</p>';
+    const br=document.getElementById('b-rating');
+    if(bug.rating){br.classList.remove('hidden');document.getElementById('b-rating-stars').textContent=stars(bug.rating);document.getElementById('b-rating-text').textContent=bug.rating_feedback||'';}
+    else{br.classList.add('hidden');}
     document.getElementById('b-del-section').classList.toggle('hidden',me.role!=='admin');
     document.getElementById('b-comment').value='';
     document.getElementById('bug-modal').classList.remove('hidden');lucide.createIcons();
@@ -213,7 +221,6 @@
         <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold" style="background:${c};color:#0f0f1e;">${esc(u.name.substring(0,2).toUpperCase())}</div>
         <div class="flex-1 min-w-0"><p class="text-sm font-medium truncate" style="color:#e8e8f0;">${esc(u.name)}</p><p class="text-xs" style="color:#666688;">${esc(u.email)}</p></div>
         <span class="text-xs px-2 py-0.5 rounded-full font-medium capitalize" style="background:${c}22;color:${c};">${u.role}</span>
-        ${u.email_verified?'':'<span class="text-xs px-2 py-0.5 rounded-full" style="background:rgba(255,190,50,0.12);color:#FFBE32;">Unverified</span>'}
         ${!u.is_active?'<span class="text-xs px-2 py-0.5 rounded-full" style="background:rgba(239,68,68,0.12);color:#ef4444;">Disabled</span>':''}
         ${me.role==='admin'&&u.id!==me.id?`<select onchange="chgRole(${u.id},this.value)" class="px-2 py-1 rounded-lg text-xs" style="background:#0f0f1e;border:1px solid #2a2a4a;color:#e8e8f0;"><option value="" disabled selected>Role</option><option value="user">User</option><option value="developer">Developer</option><option value="admin">Admin</option></select>
         <button onclick="toggleUsr(${u.id})" class="text-xs px-2 py-1 rounded-lg" style="background:rgba(255,190,50,0.12);color:#FFBE32;">${u.is_active?'Disable':'Enable'}</button>`:''}</div>`;

@@ -17,7 +17,6 @@
       <span class="text-lg font-bold" style="color:#FFBE32;">Swatter</span>
     </div>
     <div class="flex items-center gap-3">
-      <a href="/reviews" class="text-xs font-medium px-3 py-2 rounded-xl" style="color:#FFBE32;background:#1a1a35;border:1px solid #2a2a4a;">Reviews</a>
       <span id="user-name" class="text-sm hidden sm:inline" style="color:#c0c0d8;"></span>
       <button onclick="handleLogout()" class="px-3 py-2 rounded-xl text-xs font-medium" style="color:#8888aa;background:#1a1a35;border:1px solid #2a2a4a;">Sign Out</button>
     </div>
@@ -39,7 +38,7 @@
   </main>
 </div>
 
-<!-- NEW BUG MODAL with photo upload -->
+<!-- NEW BUG MODAL -->
 <div id="new-bug-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);">
   <div class="w-full max-w-lg rounded-2xl p-6 anim-fade-up max-h-[90vh] overflow-auto" style="background:#1a1a35;border:1px solid #2a2a4a;">
     <div class="flex items-center justify-between mb-6">
@@ -48,15 +47,11 @@
     </div>
     <label class="block text-sm font-medium mb-2" style="color:#c0c0d8;">Title</label>
     <input id="bug-title" type="text" placeholder="Brief description" class="w-full px-4 py-2.5 rounded-xl text-sm mb-4" style="background:#0f0f1e;border:1px solid #2a2a4a;color:#e8e8f0;">
-    <div class="grid grid-cols-2 gap-4 mb-4">
-      <div><label class="block text-sm font-medium mb-2" style="color:#c0c0d8;">Priority</label>
-        <select id="bug-priority" class="w-full px-4 py-2.5 rounded-xl text-sm" style="background:#0f0f1e;border:1px solid #2a2a4a;color:#e8e8f0;">
-          <option value="critical">Critical</option><option value="high" selected>High</option><option value="medium">Medium</option><option value="low">Low</option>
-        </select></div>
-      <div><label class="block text-sm font-medium mb-2" style="color:#c0c0d8;">Category</label>
-        <select id="bug-category" class="w-full px-4 py-2.5 rounded-xl text-sm" style="background:#0f0f1e;border:1px solid #2a2a4a;color:#e8e8f0;">
-          <option value="ui">UI</option><option value="backend">Backend</option><option value="database">Database</option><option value="api">API</option><option value="security">Security</option><option value="other" selected>Other</option>
-        </select></div>
+    <div class="mb-4">
+      <label class="block text-sm font-medium mb-2" style="color:#c0c0d8;">Priority</label>
+      <select id="bug-priority" class="w-full px-4 py-2.5 rounded-xl text-sm" style="background:#0f0f1e;border:1px solid #2a2a4a;color:#e8e8f0;">
+        <option value="critical">Critical</option><option value="high" selected>High</option><option value="medium">Medium</option><option value="low">Low</option>
+      </select>
     </div>
     <label class="block text-sm font-medium mb-2" style="color:#c0c0d8;">Description</label>
     <textarea id="bug-desc" rows="3" placeholder="Describe the bug..." class="w-full px-4 py-2.5 rounded-xl text-sm mb-4 resize-none" style="background:#0f0f1e;border:1px solid #2a2a4a;color:#e8e8f0;"></textarea>
@@ -79,7 +74,10 @@
       <div><span id="detail-bug-id" class="mono text-xs font-bold" style="color:#FFBE32;"></span><h2 id="detail-bug-title" class="text-lg font-bold mt-1" style="color:#e8e8f0;"></h2></div>
       <button onclick="closeModal('bug-detail-modal')" class="p-1.5 rounded-lg" style="color:#666688;"><i data-lucide="x" style="width:20px;height:20px;"></i></button>
     </div>
-    <div class="flex gap-2 mb-4 flex-wrap"><span id="d-priority" class="text-xs px-2 py-0.5 rounded-full font-medium"></span><span id="d-status" class="text-xs px-2 py-0.5 rounded-full font-medium"></span><span id="d-category" class="text-xs px-2 py-0.5 rounded-full font-medium" style="background:rgba(139,92,246,0.12);color:#8b5cf6;"></span></div>
+    <div class="flex gap-2 mb-4 flex-wrap">
+      <span id="d-priority" class="text-xs px-2 py-0.5 rounded-full font-medium"></span>
+      <span id="d-status" class="text-xs px-2 py-0.5 rounded-full font-medium"></span>
+    </div>
     <p class="text-xs mb-1" style="color:#8888aa;">Assigned to: <span id="d-assignee" style="color:#e8e8f0;"></span></p>
     <p id="d-desc" class="text-sm mt-3 mb-4" style="color:#c0c0d8;line-height:1.5;"></p>
     <img id="d-photo" class="hidden mb-4 rounded-xl max-h-60 object-contain w-full" style="border:1px solid #2a2a4a;">
@@ -91,6 +89,19 @@
         <button onclick="submitComment()" class="px-4 py-2 rounded-lg text-sm font-semibold" style="background:#FFBE32;color:#0f0f1e;">Send</button>
       </div>
     </div>
+    <!-- RATING SECTION — only shows for resolved bugs to the reporter -->
+    <div id="rating-section" class="hidden pt-4" style="border-top:1px solid #2a2a4a;">
+      <h3 class="text-sm font-semibold mb-3" style="color:#e8e8f0;">Rate this resolution</h3>
+      <div class="flex gap-1 mb-3" id="bug-stars"></div>
+      <textarea id="rating-feedback" rows="2" placeholder="How was the fix? (optional)" class="w-full px-3 py-2 rounded-lg text-sm resize-none mb-3" style="background:#0f0f1e;border:1px solid #2a2a4a;color:#e8e8f0;"></textarea>
+      <button onclick="submitRating()" class="px-4 py-2 rounded-lg text-sm font-semibold" style="background:#FFBE32;color:#0f0f1e;">Submit Rating</button>
+    </div>
+    <!-- RATING DISPLAY — shows after rating is submitted -->
+    <div id="rating-display" class="hidden pt-4" style="border-top:1px solid #2a2a4a;">
+      <h3 class="text-sm font-semibold mb-2" style="color:#e8e8f0;">Your Rating</h3>
+      <p id="rating-stars-display" class="text-lg mb-1" style="color:#FFBE32;"></p>
+      <p id="rating-feedback-display" class="text-sm" style="color:#c0c0d8;"></p>
+    </div>
   </div>
 </div>
 
@@ -98,7 +109,7 @@
 
 <script src="/js/swatter.js"></script>
 <script>
-  let currentUser=null, currentBugId=null;
+  let currentUser=null, currentBugId=null, selectedRating=0;
   const PS={critical:{bg:'rgba(239,68,68,0.12)',color:'#ef4444',label:'Critical'},high:{bg:'rgba(255,190,50,0.12)',color:'#FFBE32',label:'High'},medium:{bg:'rgba(59,130,246,0.12)',color:'#3b82f6',label:'Medium'},low:{bg:'rgba(107,114,128,0.12)',color:'#6b7280',label:'Low'}};
   const SS={'open':{bg:'rgba(239,68,68,0.12)',color:'#ef4444',label:'Open'},'in-progress':{bg:'rgba(255,190,50,0.12)',color:'#FFBE32',label:'In Progress'},'resolved':{bg:'rgba(34,197,94,0.12)',color:'#22c55e',label:'Resolved'},'closed':{bg:'rgba(107,114,128,0.12)',color:'#6b7280',label:'Closed'}};
 
@@ -129,14 +140,13 @@
   async function submitBug(){
     const title=document.getElementById('bug-title').value.trim();
     const priority=document.getElementById('bug-priority').value;
-    const category=document.getElementById('bug-category').value;
     const desc=document.getElementById('bug-desc').value.trim();
     const photoFile=document.getElementById('bug-photo').files[0];
     if(!title){showToast('Title is required','#ef4444');return;}
     const btn=document.getElementById('submit-bug-btn');btn.textContent='Submitting…';btn.disabled=true;
     let photo=null;
     if(photoFile){try{photo=await fileToBase64(photoFile);}catch(e){}}
-    const{ok,data}=await apiFetch('/bugs','POST',{title,priority,category,description:desc,photo});
+    const{ok,data}=await apiFetch('/bugs','POST',{title,priority,description:desc,photo});
     btn.textContent='Submit Bug';btn.disabled=false;
     if(!ok||data.error){showToast(data.error||'Failed','#ef4444');return;}
     showToast(`Bug #${data.id} reported!`);
@@ -154,7 +164,6 @@
     document.getElementById('detail-bug-title').textContent=bug.title;
     document.getElementById('d-priority').textContent=p.label;document.getElementById('d-priority').style.background=p.bg;document.getElementById('d-priority').style.color=p.color;
     document.getElementById('d-status').textContent=s.label;document.getElementById('d-status').style.background=s.bg;document.getElementById('d-status').style.color=s.color;
-    document.getElementById('d-category').textContent=bug.category||'other';
     document.getElementById('d-assignee').textContent=bug.assignee_name||'Unassigned';
     document.getElementById('d-desc').textContent=bug.description||'No description.';
     const photo=document.getElementById('d-photo');
@@ -162,6 +171,22 @@
     const cl=document.getElementById('d-comments');
     cl.innerHTML=(bug.comments||[]).map(c=>`<div class="p-2 rounded-lg" style="background:#0f0f1e;border:1px solid #2a2a4a;"><div class="flex items-center gap-2 mb-1"><span class="text-xs font-semibold" style="color:#FFBE32;">${esc(c.author_name)}</span>${c.is_resolution?'<span class="text-xs px-2 py-0.5 rounded-full" style="background:rgba(34,197,94,0.12);color:#22c55e;">Resolution</span>':''}</div><p class="text-xs" style="color:#c0c0d8;">${esc(c.text)}</p></div>`).join('')||'<p class="text-xs" style="color:#666688;">No comments yet.</p>';
     document.getElementById('d-comment-input').value='';
+
+    const ratingSection=document.getElementById('rating-section');
+    const ratingDisplay=document.getElementById('rating-display');
+    ratingSection.classList.add('hidden');ratingDisplay.classList.add('hidden');
+    if(bug.status==='resolved'||bug.status==='closed'){
+      if(bug.rating){
+        ratingDisplay.classList.remove('hidden');
+        document.getElementById('rating-stars-display').textContent=stars(bug.rating);
+        document.getElementById('rating-feedback-display').textContent=bug.rating_feedback||'';
+      } else {
+        ratingSection.classList.remove('hidden');
+        selectedRating=0;
+        document.getElementById('bug-stars').innerHTML=[1,2,3,4,5].map(n=>`<span class="star-btn" onclick="setStars(${n})" style="cursor:pointer;font-size:24px;color:#2a2a4a;">★</span>`).join('');
+      }
+    }
+
     document.getElementById('bug-detail-modal').classList.remove('hidden');lucide.createIcons();
   }
 
@@ -171,6 +196,16 @@
     const{ok,data}=await apiFetch(`/bugs/${currentBugId}/comments`,'POST',{text,is_resolution:false});
     if(!ok){showToast(data?.error||'Failed','#ef4444');return;}
     showToast('Comment added'); openDetail(currentBugId);
+  }
+
+  function setStars(n){selectedRating=n;document.querySelectorAll('#bug-stars .star-btn').forEach((s,i)=>{s.style.color=i<n?'#FFBE32':'#2a2a4a';});}
+
+  async function submitRating(){
+    if(!selectedRating){showToast('Select a rating','#ef4444');return;}
+    const feedback=document.getElementById('rating-feedback').value.trim();
+    const{ok,data}=await apiFetch(`/bugs/${currentBugId}/rate`,'POST',{rating:selectedRating,feedback});
+    if(!ok){showToast(data?.error||'Failed','#ef4444');return;}
+    showToast('Rating submitted!');openDetail(currentBugId);
   }
 
   init();

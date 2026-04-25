@@ -244,20 +244,18 @@ def api_bugs_get():
     rid = request.args.get('reporter_id')
     st = request.args.get('status')
     pr = request.args.get('priority')
-    cat = request.args.get('category')
     aid = request.args.get('assignee_id')
     query = supabase.table('bugs').select('*, reporter:users!reporter_id(name, email), assignee:users!assignee_id(name, email)')
     if rid: query = query.eq('reporter_id', rid)
     if st: query = query.eq('status', st)
     if pr: query = query.eq('priority', pr)
-    if cat: query = query.eq('category', cat)
     if aid: query = query.eq('assignee_id', aid)
     result = query.order('created_at', desc=True).execute()
     bugs = []
     for b in result.data:
         bugs.append({
             'id': b['id'], 'title': b['title'], 'priority': b['priority'], 'status': b['status'],
-            'category': b.get('category', 'other'), 'photo_url': b.get('photo_url'),
+            'photo_url': b.get('photo_url'),
             'reporter_name': b['reporter']['name'] if b.get('reporter') else None,
             'assignee_name': b['assignee']['name'] if b.get('assignee') else None,
             'assignee_id': b.get('assignee_id'),
@@ -273,12 +271,10 @@ def api_bugs_post():
     title = d.get('title', '').strip()
     desc = d.get('description', '').strip()
     priority = d.get('priority', 'medium').lower()
-    category = d.get('category', 'other').lower()
     photo_data = d.get('photo')
     if not title:
         return jsonify({'error': 'Title required'}), 400
     if priority not in ('critical', 'high', 'medium', 'low'): priority = 'medium'
-    if category not in ('ui', 'backend', 'database', 'api', 'security', 'other'): category = 'other'
     photo_url = None
     if photo_data:
         try:
@@ -293,15 +289,14 @@ def api_bugs_post():
             print(f"[PHOTO ERROR] {e}")
     result = supabase.table('bugs').insert({
         'title': title, 'description': desc, 'priority': priority, 'status': 'open',
-        'category': category, 'reporter_id': session['user_id'], 'photo_url': photo_url
-    }).execute()
+        'reporter_id': session['user_id'], 'photo_url': photo_url    }).execute()
     bug = result.data[0]
     supabase.table('activity_log').insert({
         'bug_id': bug['id'], 'user_id': session['user_id'], 'action': 'created',
         'details': f'Bug #{bug["id"]} created with priority {priority}'
     }).execute()
     send_email(ADMIN_EMAIL, f'[Swatter] New Bug #{bug["id"]}: {title}',
-        f'<h3>New Bug Report</h3><p><b>{title}</b></p><p>Priority: {priority} | Category: {category}</p><p>By: {session["name"]}</p>')
+        f'<h3>New Bug Report</h3><p><b>{title}</b></p><p>Priority: {priority}</p><p>By: {session["name"]}</p>')
     return jsonify({'id': bug['id'], 'title': bug['title'], 'status': bug['status']}), 201
 
 @app.route('/api/bugs/<int:bid>', methods=['GET'])
@@ -318,11 +313,13 @@ def api_bug_get(bid):
         'user_name': a['user']['name'] if a.get('user') else 'System', 'created_at': a.get('created_at', '')} for a in activity_result.data]
     return jsonify({
         'id': bug['id'], 'title': bug['title'], 'description': bug['description'],
-        'priority': bug['priority'], 'status': bug['status'], 'category': bug.get('category', 'other'),
+        'priority': bug['priority'], 'status': bug['status'],
         'photo_url': bug.get('photo_url'),
         'reporter_name': bug['reporter']['name'] if bug.get('reporter') else None,
         'assignee_name': bug['assignee']['name'] if bug.get('assignee') else None,
         'assignee_id': bug.get('assignee_id'), 'created_at': bug.get('created_at', ''),
+        'rating': bug.get('rating'),
+        'rating_feedback': bug.get('rating_feedback'),
         'comments': comments, 'activity': activity
     })
 
@@ -407,27 +404,43 @@ def api_comment(bid):
 
 
 # ── STATS API ────────────────────────────────────────────────
+@app.route('/api/bugs/<int:bid>/rate', methods=['POST'])
+def api_bug_rate(bid):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    d = request.get_json() or {}
+    rating = d.get('rating', 0)
+    feedback = d.get('feedback', '').strip()
+    if not isinstance(rating, int) or rating < 1 or rating > 5:
+        return jsonify({'error': 'Rating must be 1-5'}), 400
+    bug = supabase.table('bugs').select('reporter_id, status').eq('id', bid).execute()
+    if not bug.data:
+        return jsonify({'error': 'Bug not found'}), 404
+    if bug.data[0]['reporter_id'] != session['user_id']:
+        return jsonify({'error': 'Only the reporter can rate this bug'}), 403
+    if bug.data[0]['status'] not in ('resolved', 'closed'):
+        return jsonify({'error': 'Can only rate resolved bugs'}), 400
+    supabase.table('bugs').update({'rating': rating, 'rating_feedback': feedback}).eq('id', bid).execute()
+    supabase.table('activity_log').insert({'bug_id': bid, 'user_id': session['user_id'], 'action': 'rated', 'details': f'Rated {rating}/5'}).execute()
+    return jsonify({'message': 'Rating submitted!'})
 @app.route('/api/stats')
 def api_stats():
     all_bugs = supabase.table('bugs').select('status, priority, category').execute()
     counts = {'open': 0, 'in-progress': 0, 'resolved': 0, 'closed': 0, 'total': 0}
     priority_counts = {'critical': 0, 'high': 0, 'medium': 0, 'low': 0}
-    category_counts = {}
     for bug in all_bugs.data:
         counts['total'] += 1
         s = bug['status']
         if s in counts: counts[s] += 1
         p = bug.get('priority', 'medium')
         if p in priority_counts: priority_counts[p] += 1
-        c = bug.get('category', 'other')
-        category_counts[c] = category_counts.get(c, 0) + 1
     users = supabase.table('users').select('id, role').execute()
     role_counts = {}
     for u in users.data:
         r = u['role']
         role_counts[r] = role_counts.get(r, 0) + 1
     return jsonify({
-        **counts, 'priorities': priority_counts, 'categories': category_counts,
+        **counts, 'priorities': priority_counts,
         'total_users': len(users.data), 'roles': role_counts,
         'resolution_rate': round((counts['resolved'] + counts['closed']) / max(counts['total'], 1) * 100, 1)
     })
