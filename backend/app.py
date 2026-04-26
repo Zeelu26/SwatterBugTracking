@@ -63,7 +63,6 @@ def get_base_url():
     return host
 
 
-# ── AUTH DECORATORS ──────────────────────────────────────────
 def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -97,7 +96,6 @@ def api_role_required(*roles):
     return decorator
 
 
-# ── PAGE ROUTES ──────────────────────────────────────────────
 @app.route('/')
 def index():
     if 'user_id' in session:
@@ -128,18 +126,6 @@ def page_dashboard():
 def page_admin():
     return send_from_directory(FRONTEND_DIR, 'admin.html')
 
-@app.route('/reviews')
-def page_reviews():
-    return send_from_directory(FRONTEND_DIR, 'reviews.html')
-
-@app.route('/verify/<token>')
-def verify_email(token):
-    result = supabase.table('users').select('id').eq('verify_token', token).execute()
-    if not result.data:
-        return '<h2 style="font-family:sans-serif;text-align:center;margin-top:100px;color:#ef4444;">Invalid or expired verification link.</h2>'
-    supabase.table('users').update({'email_verified': True, 'verify_token': None}).eq('verify_token', token).execute()
-    return '<h2 style="font-family:sans-serif;text-align:center;margin-top:100px;color:#22c55e;">Email verified! You can now <a href="/login" style="color:#FFBE32;">sign in</a>.</h2>'
-
 @app.route('/css/<path:f>')
 def serve_css(f):
     return send_from_directory(os.path.join(FRONTEND_DIR, 'css'), f)
@@ -149,7 +135,6 @@ def serve_js(f):
     return send_from_directory(os.path.join(FRONTEND_DIR, 'js'), f)
 
 
-# ── AUTH API ─────────────────────────────────────────────────
 @app.route('/api/register', methods=['POST'])
 def api_register():
     d = request.get_json() or {}
@@ -207,25 +192,6 @@ def api_login():
     session['email'] = user['email']
     return jsonify({'id': user['id'], 'name': user['name'], 'role': user['role']})
 
-@app.route('/api/resend-verification', methods=['POST'])
-def api_resend_verification():
-    d = request.get_json() or {}
-    email = d.get('email', '').strip().lower()
-    if not email:
-        return jsonify({'error': 'Email required'}), 400
-    result = supabase.table('users').select('id, name, email_verified, verify_token').eq('email', email).execute()
-    if not result.data:
-        return jsonify({'message': 'If that email exists, a verification link has been sent.'}), 200
-    user = result.data[0]
-    if user.get('email_verified'):
-        return jsonify({'message': 'Email is already verified.'}), 200
-    token = user.get('verify_token') or str(uuid.uuid4())
-    if not user.get('verify_token'):
-        supabase.table('users').update({'verify_token': token}).eq('id', user['id']).execute()
-    verify_url = f"{get_base_url()}/verify/{token}"
-    send_email(email, 'Verify your Swatter account', f'<h3>Hi {user["name"]}!</h3><p>Click below to verify:</p><p><a href="{verify_url}" style="background:#FFBE32;color:#0f0f1e;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;">Verify Email</a></p>')
-    return jsonify({'message': 'Verification email sent! Check your inbox.'}), 200
-
 @app.route('/api/logout', methods=['POST'])
 def api_logout():
     session.clear()
@@ -238,7 +204,6 @@ def api_me():
     return jsonify({'id': session['user_id'], 'name': session['name'], 'role': session['role'], 'email': session.get('email', '')})
 
 
-# ── BUGS API ────────────────────────────────────────────────
 @app.route('/api/bugs', methods=['GET'])
 def api_bugs_get():
     rid = request.args.get('reporter_id')
@@ -289,7 +254,8 @@ def api_bugs_post():
             print(f"[PHOTO ERROR] {e}")
     result = supabase.table('bugs').insert({
         'title': title, 'description': desc, 'priority': priority, 'status': 'open',
-        'reporter_id': session['user_id'], 'photo_url': photo_url    }).execute()
+        'reporter_id': session['user_id'], 'photo_url': photo_url
+    }).execute()
     bug = result.data[0]
     supabase.table('activity_log').insert({
         'bug_id': bug['id'], 'user_id': session['user_id'], 'action': 'created',
@@ -318,8 +284,7 @@ def api_bug_get(bid):
         'reporter_name': bug['reporter']['name'] if bug.get('reporter') else None,
         'assignee_name': bug['assignee']['name'] if bug.get('assignee') else None,
         'assignee_id': bug.get('assignee_id'), 'created_at': bug.get('created_at', ''),
-        'rating': bug.get('rating'),
-        'rating_feedback': bug.get('rating_feedback'),
+        'rating': bug.get('rating'), 'rating_feedback': bug.get('rating_feedback'),
         'comments': comments, 'activity': activity
     })
 
@@ -347,6 +312,12 @@ def api_bug_status(bid):
 def api_bug_assign(bid):
     d = request.get_json() or {}
     assignee_id = d.get('assignee_id')
+    if session.get('role') == 'developer':
+        if assignee_id and int(assignee_id) != session['user_id']:
+            return jsonify({'error': 'Developers can only assign bugs to themselves'}), 403
+        bug_check = supabase.table('bugs').select('assignee_id').eq('id', bid).execute()
+        if bug_check.data and bug_check.data[0].get('assignee_id') and assignee_id:
+            return jsonify({'error': 'This bug is already assigned. Only admin can reassign.'}), 403
     if assignee_id:
         user_check = supabase.table('users').select('id, name, email').eq('id', assignee_id).execute()
         if not user_check.data:
@@ -375,8 +346,27 @@ def api_bug_delete(bid):
     supabase.table('bugs').delete().eq('id', bid).execute()
     return jsonify({'message': 'Bug deleted'})
 
+@app.route('/api/bugs/<int:bid>/rate', methods=['POST'])
+def api_bug_rate(bid):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    d = request.get_json() or {}
+    rating = d.get('rating', 0)
+    feedback = d.get('feedback', '').strip()
+    if not isinstance(rating, int) or rating < 1 or rating > 5:
+        return jsonify({'error': 'Rating must be 1-5'}), 400
+    bug = supabase.table('bugs').select('reporter_id, status').eq('id', bid).execute()
+    if not bug.data:
+        return jsonify({'error': 'Bug not found'}), 404
+    if bug.data[0]['reporter_id'] != session['user_id']:
+        return jsonify({'error': 'Only the reporter can rate this bug'}), 403
+    if bug.data[0]['status'] not in ('resolved', 'closed'):
+        return jsonify({'error': 'Can only rate resolved bugs'}), 400
+    supabase.table('bugs').update({'rating': rating, 'rating_feedback': feedback}).eq('id', bid).execute()
+    supabase.table('activity_log').insert({'bug_id': bid, 'user_id': session['user_id'], 'action': 'rated', 'details': f'Rated {rating}/5'}).execute()
+    return jsonify({'message': 'Rating submitted!'})
 
-# ── COMMENTS API ─────────────────────────────────────────────
+
 @app.route('/api/bugs/<int:bid>/comments', methods=['POST'])
 def api_comment(bid):
     if 'user_id' not in session:
@@ -403,29 +393,9 @@ def api_comment(bid):
     return jsonify({'id': result.data[0]['id'], 'text': result.data[0]['text']}), 201
 
 
-# ── STATS API ────────────────────────────────────────────────
-@app.route('/api/bugs/<int:bid>/rate', methods=['POST'])
-def api_bug_rate(bid):
-    if 'user_id' not in session:
-        return jsonify({'error': 'Unauthorized'}), 401
-    d = request.get_json() or {}
-    rating = d.get('rating', 0)
-    feedback = d.get('feedback', '').strip()
-    if not isinstance(rating, int) or rating < 1 or rating > 5:
-        return jsonify({'error': 'Rating must be 1-5'}), 400
-    bug = supabase.table('bugs').select('reporter_id, status').eq('id', bid).execute()
-    if not bug.data:
-        return jsonify({'error': 'Bug not found'}), 404
-    if bug.data[0]['reporter_id'] != session['user_id']:
-        return jsonify({'error': 'Only the reporter can rate this bug'}), 403
-    if bug.data[0]['status'] not in ('resolved', 'closed'):
-        return jsonify({'error': 'Can only rate resolved bugs'}), 400
-    supabase.table('bugs').update({'rating': rating, 'rating_feedback': feedback}).eq('id', bid).execute()
-    supabase.table('activity_log').insert({'bug_id': bid, 'user_id': session['user_id'], 'action': 'rated', 'details': f'Rated {rating}/5'}).execute()
-    return jsonify({'message': 'Rating submitted!'})
 @app.route('/api/stats')
 def api_stats():
-    all_bugs = supabase.table('bugs').select('status, priority, category').execute()
+    all_bugs = supabase.table('bugs').select('status, priority').execute()
     counts = {'open': 0, 'in-progress': 0, 'resolved': 0, 'closed': 0, 'total': 0}
     priority_counts = {'critical': 0, 'high': 0, 'medium': 0, 'low': 0}
     for bug in all_bugs.data:
@@ -439,14 +409,18 @@ def api_stats():
     for u in users.data:
         r = u['role']
         role_counts[r] = role_counts.get(r, 0) + 1
+    my_assigned = 0
+    if 'user_id' in session:
+        my_bugs = supabase.table('bugs').select('id').eq('assignee_id', session['user_id']).neq('status', 'closed').neq('status', 'resolved').execute()
+        my_assigned = len(my_bugs.data)
     return jsonify({
         **counts, 'priorities': priority_counts,
         'total_users': len(users.data), 'roles': role_counts,
+        'my_assigned': my_assigned,
         'resolution_rate': round((counts['resolved'] + counts['closed']) / max(counts['total'], 1) * 100, 1)
     })
 
 
-# ── ADMIN: USER MANAGEMENT ──────────────────────────────────
 @app.route('/api/admin/users', methods=['GET'])
 @api_role_required('admin', 'developer')
 def api_admin_users():
@@ -508,8 +482,6 @@ def api_admin_toggle_user(uid):
     target = supabase.table('users').select('is_active, role').eq('id', uid).execute()
     if not target.data:
         return jsonify({'error': 'User not found'}), 404
-    if target.data[0]['role'] == 'admin' and session.get('role') != 'admin':
-        return jsonify({'error': 'Cannot deactivate an admin'}), 403
     new_active = not target.data[0]['is_active']
     supabase.table('users').update({'is_active': new_active}).eq('id', uid).execute()
     return jsonify({'message': f'User {"activated" if new_active else "deactivated"}'})
@@ -527,54 +499,6 @@ def api_admin_delete_user(uid):
 def api_admin_staff():
     result = supabase.table('users').select('id, name, role').in_('role', ['admin', 'developer']).eq('is_active', True).execute()
     return jsonify(result.data)
-
-
-# ── REVIEWS API ──────────────────────────────────────────────
-@app.route('/api/reviews', methods=['GET'])
-def api_reviews_get():
-    result = supabase.table('reviews').select('*, author:users!author_id(name)').order('created_at', desc=True).execute()
-    reviews = []
-    for r in result.data:
-        replies_result = supabase.table('review_replies').select('*, author:users!author_id(name, role)').eq('review_id', r['id']).order('created_at', desc=False).execute()
-        replies = [{'id': rp['id'], 'text': rp['text'], 'author_name': rp['author']['name'] if rp.get('author') else 'Staff',
-            'author_role': rp['author']['role'] if rp.get('author') else '', 'created_at': rp.get('created_at', '')} for rp in replies_result.data]
-        reviews.append({
-            'id': r['id'], 'rating': r['rating'], 'title': r['title'], 'body': r.get('body', ''),
-            'author_name': r['author']['name'] if r.get('author') else 'Anonymous',
-            'author_id': r.get('author_id'), 'created_at': r.get('created_at', ''), 'replies': replies
-        })
-    return jsonify(reviews)
-
-@app.route('/api/reviews', methods=['POST'])
-def api_reviews_post():
-    if 'user_id' not in session:
-        return jsonify({'error': 'Login required to leave a review'}), 401
-    d = request.get_json() or {}
-    rating = d.get('rating', 0)
-    title = d.get('title', '').strip()
-    body = d.get('body', '').strip()
-    if not title:
-        return jsonify({'error': 'Title required'}), 400
-    if not isinstance(rating, int) or rating < 1 or rating > 5:
-        return jsonify({'error': 'Rating must be 1-5'}), 400
-    result = supabase.table('reviews').insert({'rating': rating, 'title': title, 'body': body, 'author_id': session['user_id']}).execute()
-    return jsonify({'id': result.data[0]['id'], 'message': 'Review submitted!'}), 201
-
-@app.route('/api/reviews/<int:rid>', methods=['DELETE'])
-@api_role_required('admin', 'developer')
-def api_review_delete(rid):
-    supabase.table('reviews').delete().eq('id', rid).execute()
-    return jsonify({'message': 'Review deleted'})
-
-@app.route('/api/reviews/<int:rid>/reply', methods=['POST'])
-@api_role_required('admin', 'developer')
-def api_review_reply(rid):
-    d = request.get_json() or {}
-    text = d.get('text', '').strip()
-    if not text:
-        return jsonify({'error': 'Reply text required'}), 400
-    result = supabase.table('review_replies').insert({'review_id': rid, 'author_id': session['user_id'], 'text': text}).execute()
-    return jsonify({'id': result.data[0]['id'], 'message': 'Reply posted'}), 201
 
 
 if __name__ == '__main__':
